@@ -1,13 +1,13 @@
-import React, { useState } from "react";
-import {
-  LineChart,
-  XAxis,
-  YAxis,
-  Tooltip,
-  Line,
-  CartesianGrid,
-  Legend,
-} from "recharts";
+import React, { useState ,useEffect} from "react";
+// import {
+//   LineChart,
+//   XAxis,
+//   YAxis,
+//   Tooltip,
+//   Line,
+//   CartesianGrid,
+//   Legend,
+// } from "recharts";
 import { AlertTriangle, RefreshCcw } from "lucide-react";
 
 // Custom Alert Component
@@ -43,12 +43,36 @@ const StockPrediction = () => {
   const [error, setError] = useState(null);
   const [predictionResults, setPredictionResults] = useState(null);
 
-  // Dummy products data (as provided)
-  const products = [
-    { id: 1, name: "Product A", price: 30 },
-    { id: 2, name: "Product B", price: 50 },
-    { id: 3, name: "Product C", price: 25 },
-  ];
+  const [products, setProducts] = useState([]);
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const response = await fetch(
+          "http://localhost:5000/api/products/getproducts"
+        );
+        const result = await response.json();
+        if (result.data) {
+          const fetchedProducts = result.data.map((product) => ({
+            id: product.productId,
+            name: product.name,
+            price : product.price,
+            description: product.description,
+            category: product.category,
+            subCategory: product.subCategory,
+            unitOfMeasure: product.unitOfMeasure,
+            createdAt: product.createdAt,
+            updatedAt: product.updatedAt,
+          }));
+          setProducts(fetchedProducts);
+        }
+      } catch (error) {
+        console.error("Error fetching products:", error);
+      }
+    };
+
+    fetchProducts();
+  }, []);
 
   const handlePrediction = async () => {
     setLoading(true);
@@ -135,11 +159,11 @@ const StockPrediction = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#f8f9fa] p-6">
+    <div className="space-y-6">
       <div className="max-w-7xl mx-auto">
-        <h1 className="text-3xl font-bold text-[#343a40] mb-8">
+        {/* <h1 className="text-3xl font-bold text-[#343a40] mb-8">
           Stock Prediction Dashboard
-        </h1>
+        </h1> */}
 
         {error && (
           <CustomAlert
@@ -189,7 +213,7 @@ const StockPrediction = () => {
                 <option value="">Select a product</option>
                 {products.map((product) => (
                   <option key={product.id} value={product.id}>
-                    {product.name} - ${product.price}
+                    {product.category} : {product.name} 
                   </option>
                 ))}
               </select>
@@ -300,6 +324,8 @@ const StockPrediction = () => {
                       price of $30, the model predicts the required stock
                       quantity for the forecast duration (4 periods), based on
                       the average demand observed in the past sales data.
+                      <br />
+                      <br />If ouput is null then * Model does not have sufficient data for training * 
                     </p>
                   </div>
                 </div>
@@ -338,6 +364,8 @@ const StockPrediction = () => {
                       fluctuations. In this example, for the product with ID 1,
                       the model has predicted **499.99 units** based on the
                       forecast length of 2 days.
+                      <br />
+                      <br />If ouput is null then * Model does not have sufficient data for training * 
                     </p>
                   </div>
                 </div>
@@ -365,7 +393,7 @@ const StockPrediction = () => {
                         </tr>
                       </thead>
                       <tbody>
-                        {predictionResults.data.map((item, index) => (
+                        {predictionResults && predictionResults.data.map((item, index) => (
                           <tr key={index}>
                             <td className="border px-4 py-2">{item.period}</td>
                             <td className="border px-4 py-2">
@@ -398,6 +426,7 @@ const StockPrediction = () => {
                       value takes into account more recent sales data, making
                       the prediction more responsive to recent trends in stock
                       movement.
+                      <br />- If ouput is null then * Model does not have sufficient data for training * 
                     </p>
                   </div>
                 </div>

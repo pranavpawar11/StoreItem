@@ -1,6 +1,6 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { Search, Edit2, Trash2, Eye, Plus, Package } from "lucide-react";
-
+import AlertPopup from "../components/UI/AlertPopup";
 // Custom Button Component
 const Button = ({
   children,
@@ -101,63 +101,74 @@ const Badge = ({ variant, children }) => {
 };
 
 const InventoryManagement = () => {
-  // Sample initial data
-  const initialData = [
-    {
-      productId: 1,
-      name: "iPhone 14",
-      category: "Electronics",
-      subCategory: "Apple",
-      unitOfMeasure: "Piece",
-      stockLevel: 150,
-      price: 79999,
-      expiryDate: "Non-Perishable",
-      lowStockAlert: false,
-      expiryAlert: "Non-Perishable",
-    },
-    {
-      productId: 2,
-      name: "Nike Air Max",
-      category: "Footwear",
-      subCategory: "Nike",
-      unitOfMeasure: "Pair",
-      stockLevel: 30,
-      price: 12999,
-      expiryDate: "2025-03-10",
-      lowStockAlert: true,
-      expiryAlert: "Warning",
-    },
-    {
-      productId: 3,
-      name: "Organic Bananas",
-      category: "Grocery",
-      subCategory: "Organic",
-      unitOfMeasure: "KG",
-      stockLevel: 10,
-      price: 99,
-      expiryDate: "2025-01-25",
-      lowStockAlert: true,
-      expiryAlert: "Danger",
-    },
-  ];
-
   // State management
-  const [products, setProducts] = useState(initialData);
+  const [products, setProducts] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("");
   const [stockFilter, setStockFilter] = useState("");
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isAddCategoryModalOpen, setIsAddCategoryModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [isAddStockModalOpen, setIsAddStockModalOpen] = useState(false);
-  const [newStockAmount, setNewStockAmount] = useState("");
+  const [newStockAmount, setNewStockAmount] = useState(0);
+  const [newPrice, setPrice] = useState(0);
+  const [alert, setAlert] = useState(null);
+  const [expiryDate, setExpiryDate] = useState("");
+  const [categoriesData, setCategoriesData] = useState([]);
+
+  const [categoryData, setCategoryData] = useState({
+    name: "",
+    description: "",
+  });
+  // Fetch products data from the API
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const response = await fetch(
+          "http://localhost:5000/api/products/getproducts"
+        );
+        if (!response.ok) throw new Error("Failed to fetch products");
+        const data = await response.json();
+        if (data.status) {
+          setProducts(data.data);
+        }
+      } catch (error) {
+        console.error(error);
+      }
+    };
+    fetchProducts();
+  }, [selectedProduct]);
 
   // Computed categories for filter
-  const categories = useMemo(
-    () => Array.from(new Set(products.map((p) => p.category))),
-    [products]
-  );
+  // Fetch categories from the API
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const response = await fetch(
+          "http://localhost:5000/api/category/categories"
+        );
+        const result = await response.json();
+
+        if (result.message === "Categories fetched successfully") {
+          // Extracting categories and setting state
+          setCategoriesData(result.data);
+        } else {
+          console.error("Error fetching categories:", result.message);
+        }
+      } catch (error) {
+        console.error("Error fetching categories:", error);
+      }
+    };
+
+    fetchCategories();
+  }, []);
+
+  // Use memo to create a unique list of category names
+  const categories = useMemo(() => {
+    return Array.from(new Set(categoriesData.map((category) => category.name)));
+  }, [categoriesData]);
 
   // Filtered products
   const filteredProducts = useMemo(() => {
@@ -169,8 +180,8 @@ const InventoryManagement = () => {
         !categoryFilter || product.category === categoryFilter;
       const matchesStock =
         !stockFilter ||
-        (stockFilter === "low" && product.lowStockAlert) ||
-        (stockFilter === "normal" && !product.lowStockAlert);
+        (stockFilter === "low" && product.stock === 0) ||
+        (stockFilter === "normal" && product.stock > 0);
       return matchesSearch && matchesCategory && matchesStock;
     });
   }, [products, searchQuery, categoryFilter, stockFilter]);
@@ -183,41 +194,305 @@ const InventoryManagement = () => {
     }).format(price);
   };
 
-  // Handle add stock
-  const handleAddStock = () => {
-    if (selectedProduct && newStockAmount) {
-      setProducts((prev) =>
-        prev.map((p) => {
-          if (p.productId === selectedProduct.productId) {
-            const newStock = p.stockLevel + parseInt(newStockAmount);
-            return {
-              ...p,
-              stockLevel: newStock,
-              lowStockAlert: newStock < 20,
-            };
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    const day = String(date.getDate()).padStart(2, "0"); // Ensure day is two digits
+    const month = String(date.getMonth() + 1).padStart(2, "0"); // Months are zero-indexed
+    const year = date.getFullYear();
+    return `${day}-${month}-${year}`; // Return in d-m-y format
+  };
+
+  const handleAddStock = async () => {
+    if (selectedProduct && newStockAmount && expiryDate) {
+      try {
+        const response = await fetch(
+          "http://localhost:5000/api/products/addstock",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              products: [
+                {
+                  productId: selectedProduct.productId,
+                  stock: parseInt(newStockAmount),
+                  price: selectedProduct.price,
+                  expiryDate,
+                },
+              ],
+            }),
           }
-          return p;
-        })
-      );
-      setIsAddStockModalOpen(false);
-      setNewStockAmount("");
+        );
+
+        const result = await response.json();
+        if (response.ok) {
+          setAlert({ message: result.message, status: "success" });
+        } else {
+          setAlert({
+            message: result.errors[0]?.msg || "Failed to add stock",
+            status: "error",
+          });
+        }
+      } catch (error) {
+        setAlert({
+          message: "Server error. Please try again later.",
+          status: "error",
+        });
+      } finally {
+        setIsAddStockModalOpen(false);
+        setNewStockAmount(0);
+        setPrice(0);
+        setSelectedProduct(null);
+        setExpiryDate("");
+      }
     }
   };
 
+  const updateProductAndStock = async () => {
+    try {
+      console.log(selectedProduct);
+      const response = await fetch(
+        `http://localhost:5000/api/products/updateProductAndStock/${selectedProduct.productId}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(selectedProduct),
+        }
+      );
+
+      if (response.status) {
+        setAlert({
+          message: "Product and stock updated successfully",
+          status: "success",
+        });
+      } else {
+        setAlert({ message: "Error in Updating details", status: "error" });
+      }
+      setSelectedProduct(null);
+      // const result = await response.json();
+      // if (response.ok) {
+      //   return { success: true, data: result.data.product };
+      // } else {
+      //   return {
+      //     success: false,
+      //     message: result.error || "Failed to update product",
+      //   };
+      // }
+    } catch (error) {
+      console.error("Error updating product:", error);
+      setAlert({ message: "Server error", status: "error" });
+      // return { success: false, message: "Server error" };
+    } finally {
+      setNewStockAmount(0);
+      setIsEditModalOpen(false);
+    }
+  };
+
+  const handleAddProduct = async () => {
+    if (
+      selectedProduct?.name &&
+      selectedProduct?.category &&
+      selectedProduct?.price &&
+      selectedProduct?.stock
+    ) {
+      try {
+        // Send data to the backend to create the product
+        const response = await fetch(
+          "http://localhost:5000/api/products/createproduct",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              name: selectedProduct.name,
+              description: selectedProduct.description,
+              category: selectedProduct.category,
+              subCategory: selectedProduct.subCategory,
+              unitOfMeasure: selectedProduct.unitOfMeasure,
+              initialStock: selectedProduct.stock,
+              price: selectedProduct.price,
+              expiryDate:
+                selectedProduct.expiryDate === "Non-Perishable"
+                  ? null
+                  : selectedProduct.expiryDate,
+            }),
+          }
+        );
+
+        const result = await response.json();
+        if (response.ok) {
+          // Add the product to the local state and close modal
+          setProducts((prev) => [
+            ...prev,
+            {
+              ...selectedProduct,
+              productId: Math.max(...prev.map((p) => p.productId)) + 1,
+              expiryAlert:
+                selectedProduct.expiryDate === "Non-Perishable"
+                  ? "Non-Perishable"
+                  : "Normal",
+            },
+          ]);
+          setIsAddModalOpen(false);
+          setSelectedProduct(null);
+
+          setAlert({
+            message: "Product created and stock added successfully",
+            status: "success",
+          });
+        } else {
+          setAlert({ message: "Failed to create product", status: "error" });
+        }
+      } catch (error) {
+        console.error("Error adding product:", error);
+        setAlert({
+          message: "An error occurred while adding the product",
+          status: "error",
+        });
+      }
+    } else {
+      setAlert({
+        message: "Please fill in all required fields",
+        status: "error",
+      });
+    }
+  };
+
+  const handleAddCategory = async () => {
+    const { name, description } = categoryData;
+
+    if (!name) {
+      setAlert({
+        message: "Category name is required",
+        status: "error",
+      });
+      return;
+    }
+
+    const categoryExists = categoriesData.find(
+      (category) => category.name === name
+    );
+
+    if (categoryExists) {
+      // If category exists, set the alert and return early
+      setAlert({
+        message: "Category name already exists",
+        status: "error",
+      });
+      return; // Exit early to prevent submission
+    }
+    try {
+      // Send category data to backend
+      const response = await fetch(
+        "http://localhost:5000/api/category/createcategory",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            name,
+            description,
+          }),
+        }
+      );
+
+      const result = await response.json();
+
+      if (response.ok) {
+        // Add the newly created category to the local categories list
+        setCategoriesData((prev) => [...prev, result.data]);
+
+        // Close the modal and reset the form
+        setIsAddCategoryModalOpen(false);
+        setCategoryData({
+          name: "",
+          description: "",
+        });
+        setAlert({
+          message: "Category Added Successfully",
+          status: "success",
+        });
+      } else {
+        setAlert({
+          message: "Failed to create category",
+          status: "error",
+        });
+      }
+    } catch (error) {
+      console.error("Error adding category:", error);
+      setAlert({
+        message: "An error occurred while adding the category.",
+        status: "error",
+      });
+    }
+  };
+
+  const handleDeleteProduct = async (id) => {
+    try {
+      // Send category data to backend
+      const response = await fetch(
+        `http://localhost:5000/api/products/deleteproduct/${id}`,
+        {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      const result = await response.json();
+      console.log(result);
+      if (result.status) {
+        setProducts((prev) => prev.filter((p) => p.productId !== id));
+        setAlert({
+          message: result.message,
+          status: "success",
+        });
+      } else {
+        setAlert({
+          message: result.message,
+          status: "error",
+        });
+      }
+    } catch (error) {
+      console.error("Error in Delelting ", error);
+      setAlert({
+        message: "Error in Delelting Product",
+        status: "error",
+      });
+    }
+  };
   return (
     <div className="space-y-6">
+      {alert && (
+        <AlertPopup
+          message={alert.message}
+          status={alert.status}
+          onClose={() => setAlert(null)}
+        />
+      )}
       {/* <div className="bg-white rounded-lg shadow-sm p-6"> */}
       {/* Header */}
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-[#343a40]">
           Inventory Management
         </h1>
-        <Button onClick={() => setIsAddModalOpen(true)}>
-          <Plus className="h-4 w-4" />
-          Add Product
-        </Button>
-      </div>
 
+        <div className="flex justify-between gap-4 items-center ">
+          <Button onClick={() => setIsAddModalOpen(true)}>
+            <Plus className="h-4 w-4" />
+            Add Product
+          </Button>
+          <Button onClick={() => setIsAddCategoryModalOpen(true)}>
+            <Plus className="h-4 w-4" />
+            Add Category
+          </Button>
+        </div>
+      </div>
       {/* Search and Filters */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
         <Input
@@ -242,7 +517,6 @@ const InventoryManagement = () => {
           ]}
         />
       </div>
-
       {/* Products Table */}
       <div className="overflow-x-auto">
         <table className="w-full">
@@ -254,6 +528,9 @@ const InventoryManagement = () => {
               </th>
               <th className="text-left p-4 text-[#6c757d] font-semibold">
                 Category
+              </th>
+              <th className="text-left p-4 text-[#6c757d] font-semibold">
+                Brand
               </th>
               <th className="text-left p-4 text-[#6c757d] font-semibold">
                 Price
@@ -275,13 +552,14 @@ const InventoryManagement = () => {
                 <td className="p-4">{product.productId}</td>
                 <td className="p-4">{product.name}</td>
                 <td className="p-4">{product.category}</td>
+                <td className="p-4">{product.subCategory}</td>
                 <td className="p-4">{formatPrice(product.price)}</td>
                 <td className="p-4">
-                  {product.stockLevel} {product.unitOfMeasure}
+                  {product.stock} {product.unitOfMeasure}
                 </td>
                 <td className="p-4">
-                  <Badge variant={product.lowStockAlert ? "danger" : "success"}>
-                    {product.lowStockAlert ? "Low Stock" : "In Stock"}
+                  <Badge variant={product.stock === 0 ? "danger" : "success"}>
+                    {product.stock === 0 ? "Out of Stock" : "In Stock"}
                   </Badge>
                 </td>
                 <td className="p-4">
@@ -321,11 +599,7 @@ const InventoryManagement = () => {
                             "Are you sure you want to delete this product?"
                           )
                         ) {
-                          setProducts((prev) =>
-                            prev.filter(
-                              (p) => p.productId !== product.productId
-                            )
-                          );
+                          handleDeleteProduct(product.productId);
                         }
                       }}
                     >
@@ -358,12 +632,12 @@ const InventoryManagement = () => {
                 Current Stock
               </label>
               <p className="text-[#343a40]">
-                {selectedProduct.stockLevel} {selectedProduct.unitOfMeasure}
+                {selectedProduct.stock} {selectedProduct.unitOfMeasure}
               </p>
             </div>
             <div>
               <label className="block text-sm font-medium text-[#6c757d] mb-1">
-                Add Stock
+                Add Stock Quantity
               </label>
               <Input
                 type="number"
@@ -371,6 +645,23 @@ const InventoryManagement = () => {
                 value={newStockAmount}
                 onChange={(e) => setNewStockAmount(e.target.value)}
                 placeholder="Enter quantity"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-[#6c757d] mb-1">
+                Expiry Date
+              </label>
+              <Input
+                type="date"
+                value={
+                  expiryDate ||
+                  (selectedProduct.expiryDate
+                    ? new Date(selectedProduct.expiryDate)
+                        .toISOString()
+                        .split("T")[0]
+                    : "")
+                }
+                onChange={(e) => setExpiryDate(e.target.value)}
               />
             </div>
             <div className="flex justify-end gap-2 mt-4">
@@ -386,57 +677,113 @@ const InventoryManagement = () => {
         )}
       </Modal>
 
-      {/* View Details Modal */}
+      {/* View Product Modal */}
       <Modal
         isOpen={isViewModalOpen}
         onClose={() => setIsViewModalOpen(false)}
         title="Product Details"
       >
         {selectedProduct && (
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-[#6c757d] mb-1">
-                Product ID
-              </label>
-              <p className="text-[#343a40]">{selectedProduct.productId}</p>
+          <div className="space-y-3">
+            {/* Enhanced Header */}
+            <div className="flex justify-between items-center border-gray-100">
+              <div className="text-lg font-semibold text-[#343a40]">
+                {selectedProduct.name}
+              </div>
+              <div className="px-3 py-1 bg-blue-50 rounded-full text-sm font-medium text-blue-600">
+                {selectedProduct.category}
+              </div>
             </div>
-            <div>
-              <label className="block text-sm font-medium text-[#6c757d] mb-1">
-                Name
-              </label>
-              <p className="text-[#343a40]">{selectedProduct.name}</p>
+
+            <div className="flex justify-between items-center pb-2 border-b border-gray-100">
+              <div className="text-lg font-semibold text-[#343a40]">
+                <label className="block text-sm font-medium text-[#6c757d] mb-2">
+                  Product ID
+                </label>
+                <p className="text-[#343a40] font-medium">
+                  {selectedProduct.productId}
+                </p>
+              </div>
+
+              <div className="text-lg font-semibold text-[#343a40]">
+                {/* <label className="block text-sm font-medium text-[#6c757d] mb-2">
+                  Brand
+                </label> */}
+                <div className="px-3 py-2 bg-blue-50 rounded-full text-sm font-medium text-blue-600">
+                  {selectedProduct.subCategory}
+                </div>
+              </div>
             </div>
-            <div>
-              <label className="block text-sm font-medium text-[#6c757d] mb-1">
-                Category
-              </label>
-              <p className="text-[#343a40]">{selectedProduct.category}</p>
+
+            <div className="space-y-4">
+              {/* Product ID */}
+              {/* <div className="p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                <label className="block text-sm font-medium text-[#6c757d] mb-2">
+                  Product ID
+                </label>
+                <p className="text-[#343a40] font-medium">
+                  {selectedProduct.productId}
+                </p>
+              </div> */}
+
+              {/* Description */}
+              <div className="p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                <label className="block text-sm font-medium text-[#6c757d] mb-2">
+                  Description
+                </label>
+                <p className="text-[#343a40] leading-relaxed">
+                  {selectedProduct.description}
+                </p>
+              </div>
+
+              {/* Subcategory */}
+              {/* <div className="p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                <label className="block text-sm font-medium text-[#6c757d] mb-2">
+                  Brand
+                </label>
+                <p className="text-[#343a40]">{selectedProduct.subCategory}</p>
+              </div> */}
+
+              {/* Price - Special Styling */}
+              <div className="p-3 bg-blue-50 rounded-lg">
+                <label className="block text-sm font-medium text-[#6c757d] mb-2">
+                  Price
+                </label>
+                <p className="text-[#343a40] font-bold text-lg">
+                  {formatPrice(selectedProduct.price)}
+                  <span className="text-sm font-normal text-[#6c757d] ml-1">
+                    /{selectedProduct.unitOfMeasure}
+                  </span>
+                </p>
+              </div>
+
+              {/* Stock Level */}
+              <div className="p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                <label className="block text-sm font-medium text-[#6c757d] mb-2">
+                  Stock Level
+                </label>
+                <p className="text-[#343a40]">
+                  <span className="font-medium">{selectedProduct.stock}</span>
+                  <span className="text-[#6c757d] ml-1">
+                    {selectedProduct.unitOfMeasure}
+                  </span>
+                </p>
+              </div>
+
+              {/* Expiry Date */}
+              <div className="p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                <label className="block text-sm font-medium text-[#6c757d] mb-2">
+                  Expiry Date
+                </label>
+                <p className="text-[#343a40]">
+                  {formatDate(selectedProduct.expiryDate)}
+                </p>
+              </div>
             </div>
-            <div>
-              <label className="block text-sm font-medium text-[#6c757d] mb-1">
-                Price
-              </label>
-              <p className="text-[#343a40]">
-                {formatPrice(selectedProduct.price)}
-              </p>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-[#6c757d] mb-1">
-                Stock Level
-              </label>
-              <p className="text-[#343a40]">
-                {selectedProduct.stockLevel} {selectedProduct.unitOfMeasure}
-              </p>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-[#6c757d] mb-1">
-                Expiry Date
-              </label>
-              <p className="text-[#343a40]">{selectedProduct.expiryDate}</p>
-            </div>
+
             <Button
               variant="outline"
-              className="w-full mt-4"
+              className="w-full mt-6 py-2 hover:bg-gray-100 transition-colors duration-200"
               onClick={() => setIsViewModalOpen(false)}
             >
               Close
@@ -445,7 +792,7 @@ const InventoryManagement = () => {
         )}
       </Modal>
 
-      {/* Edit Product Modal */}
+      {/* Updated Edit Product Modal */}
       <Modal
         isOpen={isEditModalOpen}
         onClose={() => setIsEditModalOpen(false)}
@@ -502,6 +849,21 @@ const InventoryManagement = () => {
             </div>
             <div>
               <label className="block text-sm font-medium text-[#6c757d] mb-1">
+                Add Stock Quantity
+              </label>
+              <Input
+                type="number"
+                defaultValue={selectedProduct.stock}
+                onChange={(e) =>
+                  setSelectedProduct((prev) => ({
+                    ...prev,
+                    stock: parseInt(e.target.value),
+                  }))
+                }
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-[#6c757d] mb-1">
                 Unit of Measure
               </label>
               <Input
@@ -521,8 +883,11 @@ const InventoryManagement = () => {
               <Input
                 type="date"
                 defaultValue={
+                  selectedProduct.expiryDate &&
                   selectedProduct.expiryDate !== "Non-Perishable"
-                    ? selectedProduct.expiryDate
+                    ? new Date(selectedProduct.expiryDate)
+                        .toISOString()
+                        .split("T")[0]
                     : ""
                 }
                 onChange={(e) =>
@@ -540,20 +905,7 @@ const InventoryManagement = () => {
               >
                 Cancel
               </Button>
-              <Button
-                onClick={() => {
-                  setProducts((prev) =>
-                    prev.map((p) =>
-                      p.productId === selectedProduct.productId
-                        ? selectedProduct
-                        : p
-                    )
-                  );
-                  setIsEditModalOpen(false);
-                }}
-              >
-                Save Changes
-              </Button>
+              <Button onClick={updateProductAndStock}>Save Changes</Button>
             </div>
           </div>
         )}
@@ -597,6 +949,20 @@ const InventoryManagement = () => {
           </div>
           <div>
             <label className="block text-sm font-medium text-[#6c757d] mb-1">
+              Brand Name
+            </label>
+            <Input
+              placeholder="Enter brand name"
+              onChange={(e) =>
+                setSelectedProduct((prev) => ({
+                  ...prev,
+                  subCategory: e.target.value,
+                }))
+              }
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-[#6c757d] mb-1">
               Price (₹)
             </label>
             <Input
@@ -620,7 +986,7 @@ const InventoryManagement = () => {
               onChange={(e) =>
                 setSelectedProduct((prev) => ({
                   ...prev,
-                  stockLevel: parseInt(e.target.value),
+                  stock: parseInt(e.target.value),
                   lowStockAlert: parseInt(e.target.value) < 20,
                 }))
               }
@@ -658,33 +1024,55 @@ const InventoryManagement = () => {
             <Button variant="outline" onClick={() => setIsAddModalOpen(false)}>
               Cancel
             </Button>
+            <Button onClick={handleAddProduct}>Add Product</Button>
+          </div>
+        </div>
+      </Modal>
+
+      <Modal
+        isOpen={isAddCategoryModalOpen}
+        onClose={() => setIsAddCategoryModalOpen(false)}
+        title="Add New Category"
+      >
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-[#6c757d] mb-1">
+              Category Name
+            </label>
+            <Input
+              placeholder="Enter category name"
+              value={categoryData.name}
+              onChange={(e) =>
+                setCategoryData((prev) => ({
+                  ...prev,
+                  name: e.target.value,
+                }))
+              }
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-[#6c757d] mb-1">
+              Description (Optional)
+            </label>
+            <Input
+              placeholder="Enter category description"
+              value={categoryData.description}
+              onChange={(e) =>
+                setCategoryData((prev) => ({
+                  ...prev,
+                  description: e.target.value,
+                }))
+              }
+            />
+          </div>
+          <div className="flex justify-end gap-2 mt-4">
             <Button
-              onClick={() => {
-                if (
-                  selectedProduct?.name &&
-                  selectedProduct?.category &&
-                  selectedProduct?.price
-                ) {
-                  setProducts((prev) => [
-                    ...prev,
-                    {
-                      ...selectedProduct,
-                      productId: Math.max(...prev.map((p) => p.productId)) + 1,
-                      expiryAlert:
-                        selectedProduct.expiryDate === "Non-Perishable"
-                          ? "Non-Perishable"
-                          : "Normal",
-                    },
-                  ]);
-                  setIsAddModalOpen(false);
-                  setSelectedProduct(null);
-                } else {
-                  alert("Please fill in all required fields");
-                }
-              }}
+              variant="outline"
+              onClick={() => setIsAddCategoryModalOpen(false)}
             >
-              Add Product
+              Cancel
             </Button>
+            <Button onClick={handleAddCategory}>Add Category</Button>
           </div>
         </div>
       </Modal>

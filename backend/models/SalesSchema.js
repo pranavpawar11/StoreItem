@@ -19,6 +19,9 @@ const SalesSchema = new Schema({
         required: true
     },
     buyerDetails: {
+        name:{
+            type: String
+        },
         gender: {
             type: String,
             enum: ['male', 'female', 'other'],

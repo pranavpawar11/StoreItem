@@ -6,8 +6,8 @@ import Dashboard from './pages/dashboard';
 import Inventory from './pages/InventoryManagement';
 import Sales from './pages/SalesManagement';
 import StockPrediction from './pages/StockPrediction';
-// import BrandAnalysis from './pages/BrandAnalysis';
-// import Reports from './pages/Reports';
+import BrandAnalysis from './pages/BrandAnalysis';
+import Reports from './pages/Reports';
 // import ExpiryAlerts from './pages/ExpiryAlerts';
 // import Profile from './pages/Profile';
 const App = () => {
@@ -23,9 +23,9 @@ const App = () => {
           <Route path="/inventory" element={<Inventory />} />
           <Route path="/sales" element={<Sales />} />
           <Route path="/predictions" element={<StockPrediction />} />
-          {/* <Route path="/brand-analysis" element={<BrandAnalysis />} />
+          <Route path="/brand-analysis" element={<BrandAnalysis />} />
           <Route path="/reports" element={<Reports />} />
-          <Route path="/expiry-alerts" element={<ExpiryAlerts />} />
+          {/* <Route path="/expiry-alerts" element={<ExpiryAlerts />} />
           <Route path="/profile" element={<Profile />} /> */}
         </Route>
 

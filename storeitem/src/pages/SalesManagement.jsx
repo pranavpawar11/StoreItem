@@ -1,4 +1,7 @@
 import React, { useState, useEffect } from "react";
+import { fetchProducts, submitSale } from "../components/ApiService/productAPI";
+
+import AlertPopup from "../components/UI/AlertPopup";
 
 const TabButton = ({ active, onClick, children }) => (
   <button
@@ -110,40 +113,28 @@ const BillingSection = () => {
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [quantity, setQuantity] = useState("");
   const [cartItems, setCartItems] = useState([]);
-  const [sellerInfo, setSellerInfo] = useState({
-    name: "",
+  const [buyerInfo, setBuyerInfo] = useState({
     buyerName: "",
     buyerAge: "",
     buyerGender: "",
   });
+  const [products, setProducts] = useState([]);
+  
+  const [alert, setAlert] = useState(null);
+  const [showPopUp, setShowPopUp] = useState(false);
 
-  const ageOptions = [
-    { value: "18-25", label: "18-25 years" },
-    { value: "26-35", label: "26-35 years" },
-    { value: "36-45", label: "36-45 years" },
-    { value: "46-55", label: "46-55 years" },
-    { value: "56+", label: "56+ years" },
-  ];
-
-  // Mock products data (prices in INR)
-  const products = [
-    {
-      id: 1,
-      name: "Product A",
-      category: "Category X",
-      price: 7500,
-      unit: "Piece",
-      stock: 10,
-    },
-    {
-      id: 2,
-      name: "Product B",
-      category: "Category Y",
-      price: 3750,
-      unit: "KG",
-      stock: 5,
-    },
-  ];
+  useEffect(() => {
+    // Fetch products from the API
+    const getProducts = async () => {
+      try {
+        const response = await fetchProducts();
+        setProducts(response.data);
+      } catch (error) {
+        console.error("Error fetching products:", error);
+      }
+    };
+    getProducts();
+  }, []);
 
   const handleAddToCart = () => {
     if (!selectedProduct || !quantity) return;
@@ -159,56 +150,86 @@ const BillingSection = () => {
     setQuantity("");
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     const saleData = {
-      salesperson: sellerInfo.name,
-      buyer: {
-        name: sellerInfo.buyerName,
-        age: sellerInfo.buyerAge,
-        gender: sellerInfo.buyerGender,
+      products: cartItems.map((item) => ({
+        productId: item.productId, // use productId here
+        quantitySold: item.quantity,
+        salePrice: item.price,
+        totalSaleAmount: item.subtotal,
+      })),
+      buyerDetails: {
+        name: buyerInfo.buyerName,
+        age: buyerInfo.buyerAge,
+        gender: buyerInfo.buyerGender,
       },
-      products: cartItems,
-      totalAmount: cartItems.reduce((sum, item) => sum + item.subtotal, 0),
     };
 
-    console.log("Sale Data:", saleData);
+    try {
+      const response = await submitSale(saleData);
+      if (response.message) {
+        setAlert({ message: "Sale Added Succesfully", status: "success" }); // Show pop-up if sale is successful
+        setSelectedProduct(null);
+        setQuantity("");
+        setCartItems([]);
+        setBuyerInfo({
+          buyerName: "",
+          buyerAge: "",
+          buyerGender: "",
+        });
+      }
+    } catch (error) {
+      console.error("Error submitting sale:", error);
+    }
   };
 
-  // Format price in Indian Rupees
   const formatPrice = (price) => {
     return `₹${price.toLocaleString("en-IN")}`;
   };
 
   return (
     <Card className="p-6">
+      {/* Pop-up Confirmation */}
+      {alert && (
+          <AlertPopup
+            message={alert.message}
+            status={alert.status}
+            onClose={() => setAlert(null)}
+          />
+      )}
       <h2 className="text-xl font-semibold text-[#343a40] mb-6">New Sale</h2>
 
       <div className="space-y-6">
-        {/* Seller Info */}
+        {/* Buyer Info */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <Input
-            label="Seller Name"
-            value={sellerInfo.name}
-            onChange={(e) =>
-              setSellerInfo({ ...sellerInfo, name: e.target.value })
-            }
-            placeholder="Enter seller name"
-          />
-          <Input
             label="Buyer Name"
-            value={sellerInfo.buyerName}
+            value={buyerInfo.buyerName}
             onChange={(e) =>
-              setSellerInfo({ ...sellerInfo, buyerName: e.target.value })
+              setBuyerInfo({ ...buyerInfo, buyerName: e.target.value })
             }
             placeholder="Enter buyer name"
           />
-          <Select
+          <Input
             label="Buyer Age"
-            value={sellerInfo.buyerAge}
+            type="number"
+            value={buyerInfo.buyerAge}
             onChange={(e) =>
-              setSellerInfo({ ...sellerInfo, buyerAge: e.target.value })
+              setBuyerInfo({ ...buyerInfo, buyerAge: e.target.value })
             }
-            options={ageOptions}
+            placeholder="Enter buyer age"
+          />
+          <Select
+            label="Buyer Gender"
+            value={buyerInfo.buyerGender}
+            onChange={(e) =>
+              setBuyerInfo({ ...buyerInfo, buyerGender: e.target.value })
+            }
+            options={[
+              { value: "male", label: "Male" },
+              { value: "female", label: "Female" },
+              { value: "other", label: "Other" },
+            ]}
           />
         </div>
 
@@ -216,16 +237,16 @@ const BillingSection = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <Select
             label="Product"
-            value={selectedProduct?.id || ""}
+            value={selectedProduct?.productId || ""} // Update to productId
             onChange={(e) => {
               const product = products.find(
-                (p) => p.id === parseInt(e.target.value)
+                (p) => p.productId === parseInt(e.target.value)
               );
               setSelectedProduct(product);
             }}
             options={products.map((p) => ({
-              value: p.id,
-              label: `${p.name} (Stock: ${p.stock} ${p.unit})`,
+              value: p.productId, // Use productId as the value
+              label: `${p.name} (Stock: ${p.stock} ${p.unitOfMeasure})`,
             }))}
           />
           <Input
@@ -275,7 +296,7 @@ const BillingSection = () => {
                       <tr key={index} className="border-t border-[#ced4da]">
                         <td className="px-4 py-2">{item.name}</td>
                         <td className="px-4 py-2">
-                          {item.quantity} {item.unit}
+                          {item.quantity} {item.unitOfMeasure}
                         </td>
                         <td className="px-4 py-2">{formatPrice(item.price)}</td>
                         <td className="px-4 py-2">
@@ -317,28 +338,103 @@ const BillingSection = () => {
           <Button onClick={handleSubmit}>Complete Sale</Button>
         </div>
       </div>
+
+      
     </Card>
   );
 };
 
 // Sales Table Section
 const SalesTable = () => {
-  const [sales, setSales] = useState([
-    {
-      id: 101,
-      date: "2025-01-20",
-      products: ["Product A", "Product B"],
-      totalAmount: 150,
-      salesperson: "John Doe",
-    },
-    {
-      id: 102,
-      date: "2025-01-19",
-      products: ["Product C"],
-      totalAmount: 75,
-      salesperson: "Jane Smith",
-    },
-  ]);
+  const [sales, setSales] = useState([]);
+  const [filteredSales, setFilteredSales] = useState([]);
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedGender, setSelectedGender] = useState("");
+  const [currentPage, setCurrentPage] = useState(1); // Current page state
+  const salesPerPage = 10; // Number of sales to display per page
+
+  // Fetch sales data from the API
+  useEffect(() => {
+    const fetchSales = async () => {
+      try {
+        const response = await fetch(
+          "http://localhost:5000/api/products/getsales"
+        );
+        const data = await response.json();
+        if (data.status) {
+          setSales(data.data);
+          setFilteredSales(data.data); // Initially, display all sales
+        }
+      } catch (error) {
+        console.error("Error fetching sales:", error);
+      }
+    };
+    fetchSales();
+  }, []);
+
+  // Filter the sales data based on selected filters
+  useEffect(() => {
+    let filtered = sales;
+
+    // Filter by start date
+    if (startDate) {
+      filtered = filtered.filter(
+        (sale) => new Date(sale.saleDate) >= new Date(startDate)
+      );
+    }
+
+    // Filter by end date
+    if (endDate) {
+      filtered = filtered.filter(
+        (sale) => new Date(sale.saleDate) <= new Date(endDate)
+      );
+    }
+
+    // Filter by search query (product ID or name)
+    if (searchQuery) {
+      filtered = filtered.filter(
+        (sale) =>
+          sale._id.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          sale.productId.toString().includes(searchQuery)
+      );
+    }
+
+    // Filter by gender
+    if (selectedGender) {
+      filtered = filtered.filter(
+        (sale) => sale.buyerDetails.gender === selectedGender
+      );
+    }
+
+    // Set the filtered sales
+    setFilteredSales(filtered);
+    setCurrentPage(1); // Reset to page 1 when filters change
+  }, [startDate, endDate, searchQuery, selectedGender, sales]);
+
+  // Calculate the index of the last item on the current page
+  const indexOfLastSale = currentPage * salesPerPage;
+  const indexOfFirstSale = indexOfLastSale - salesPerPage;
+  const currentSales = filteredSales.slice(indexOfFirstSale, indexOfLastSale);
+
+  // Handle page change
+  const handlePageChange = (pageNumber) => {
+    setCurrentPage(pageNumber);
+  };
+
+  // Handle previous/next page change
+  const handlePrevious = () => {
+    if (currentPage > 1) {
+      setCurrentPage(currentPage - 1);
+    }
+  };
+
+  const handleNext = () => {
+    if (currentPage < Math.ceil(filteredSales.length / salesPerPage)) {
+      setCurrentPage(currentPage + 1);
+    }
+  };
 
   return (
     <Card className="p-6 mt-8">
@@ -347,10 +443,38 @@ const SalesTable = () => {
       </h2>
 
       {/* Filters */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-        <Input type="date" label="Start Date" placeholder="Select start date" />
-        <Input type="date" label="End Date" placeholder="Select end date" />
-        <Input label="Search" placeholder="Search by product or ID" />
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+        <Input
+          type="date"
+          label="Start Date"
+          value={startDate}
+          onChange={(e) => setStartDate(e.target.value)}
+          placeholder="Select start date"
+        />
+        <Input
+          type="date"
+          label="End Date"
+          value={endDate}
+          onChange={(e) => setEndDate(e.target.value)}
+          placeholder="Select end date"
+        />
+        <Input
+          label="Search"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          placeholder="Search by product or ID"
+        />
+        <Select
+          label="Gender"
+          value={selectedGender}
+          onChange={(e) => setSelectedGender(e.target.value)}
+          options={[
+            { value: "", label: "All Genders" },
+            { value: "male", label: "Male" },
+            { value: "female", label: "Female" },
+            { value: "other", label: "Other" },
+          ]}
+        />  
       </div>
 
       {/* Sales Table */}
@@ -365,30 +489,61 @@ const SalesTable = () => {
               <th className="px-4 py-2 text-left text-[#6c757d]">
                 Salesperson
               </th>
+              <th className="px-4 py-2 text-left text-[#6c757d]">Gender</th>
             </tr>
           </thead>
           <tbody>
-            {sales.map((sale) => (
-              <tr key={sale.id} className="border-t border-[#ced4da]">
-                <td className="px-4 py-2">{sale.id}</td>
-                <td className="px-4 py-2">{sale.date}</td>
-                <td className="px-4 py-2">{sale.products.join(", ")}</td>
-                <td className="px-4 py-2">${sale.totalAmount}</td>
-                <td className="px-4 py-2">{sale.salesperson}</td>
+            {currentSales.length > 0 ? (
+              currentSales.map((sale) => (
+                <tr key={sale._id} className="border-t border-[#ced4da]">
+                  <td className="px-4 py-2">{sale._id}</td>
+                  <td className="px-4 py-2">
+                    {new Date(sale.saleDate).toLocaleDateString()}
+                  </td>
+                  <td className="px-4 py-2">{`Product ID: ${sale.productId} (Quantity: ${sale.quantitySold})`}</td>
+                  <td className="px-4 py-2">₹{sale.totalSaleAmount}</td>
+                  <td className="px-4 py-2">
+                    {sale.buyerDetails.name || "N/A"}
+                  </td>
+                  <td className="px-4 py-2">{sale.buyerDetails.gender}</td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td
+                  colSpan="6"
+                  className="px-4 py-2 text-center text-[#6c757d]"
+                >
+                  No sales found.
+                </td>
               </tr>
-            ))}
+            )}
           </tbody>
         </table>
       </div>
 
       {/* Pagination */}
       <div className="flex justify-between items-center mt-4">
-        <p className="text-sm text-[#6c757d]">Showing 1-2 of 2 entries</p>
+        <p className="text-sm text-[#6c757d]">
+          Showing {indexOfFirstSale + 1} to{" "}
+          {Math.min(indexOfLastSale, filteredSales.length)} of{" "}
+          {filteredSales.length} entries
+        </p>
         <div className="flex gap-2">
-          <Button variant="secondary" disabled>
+          <Button
+            variant="secondary"
+            onClick={handlePrevious}
+            disabled={currentPage === 1}
+          >
             Previous
           </Button>
-          <Button variant="secondary" disabled>
+          <Button
+            variant="secondary"
+            onClick={handleNext}
+            disabled={
+              currentPage === Math.ceil(filteredSales.length / salesPerPage)
+            }
+          >
             Next
           </Button>
         </div>
@@ -403,6 +558,7 @@ const SalesManagement = () => {
 
   return (
     <div className="space-y-6">
+      
       {/* Tabs Navigation */}
       <div className="flex gap-2 border-b border-[#ced4da] mb-6">
         <TabButton

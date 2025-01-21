@@ -3,7 +3,7 @@ const { Schema } = mongoose;
 
 const StockSchema = new Schema({
     productId: {
-        type: String,
+        type: Number,
         required: true,
         ref: 'Product'
     },

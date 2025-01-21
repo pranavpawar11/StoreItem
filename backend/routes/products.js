@@ -4,8 +4,8 @@ const { body, validationResult } = require('express-validator');
 const router = express.Router();
 const Product = require('../models/ProductSchema');
 const Counter = require('../models/CounterSchema');
-const Stock =  require('../models/StockSchema')
-const Sales =  require('../models/SalesSchema')
+const Stock = require('../models/StockSchema')
+const Sales = require('../models/SalesSchema')
 const StockHistory = require('../models/StockHistorySchema')
 const fetchuser = require('../middlewear/fetchuser');
 
@@ -24,12 +24,14 @@ const getNextSequence = async (name) => {
     }
 };
 
-// Route to add a new product
-router.post('/createproduct',fetchuser, [
+router.post('/createproduct', fetchuser, [
     body('name', 'Product name is required').not().isEmpty(),
     body('category', 'Category is required').not().isEmpty(),
     body('unitOfMeasure', 'Unit of measure is required').not().isEmpty(),
-    body('description', 'Description is optional').optional()
+    body('description', 'Description is optional').optional(),
+    body('initialStock', 'Initial stock is required').isNumeric().not().isEmpty(),  // Add validation for initial stock
+    body('price', 'Price is required').isNumeric().not().isEmpty(),  // Add validation for price
+    body('expiryDate', 'Expiry date is required').isISO8601().optional(),  // Optional expiry date validation
 ], async (req, res) => {
 
     const result = validationResult(req);
@@ -38,7 +40,7 @@ router.post('/createproduct',fetchuser, [
     }
 
     try {
-        const { name, description, category, subCategory, unitOfMeasure } = req.body;
+        const { name, description, category, subCategory, unitOfMeasure, initialStock, price, expiryDate } = req.body;
 
         // Check if the product already exists
         const existingProduct = await Product.findOne({ name });
@@ -56,19 +58,30 @@ router.post('/createproduct',fetchuser, [
             description,
             category,
             subCategory,
-            unitOfMeasure
+            unitOfMeasure,
         });
 
         // Save to the database
         const savedProduct = await newProduct.save();
 
-        res.json({ message: 'Product created successfully', data: savedProduct });
+        // Add initial stock
+        const newStock = new Stock({
+            productId: savedProduct.productId,
+            stock: initialStock,
+            price,
+            expiryDate: expiryDate ? new Date(expiryDate) : null,
+        });
+
+        await newStock.save();  // Save initial stock
+
+        res.json({ message: 'Product created and stock added successfully', data: savedProduct });
 
     } catch (err) {
         console.error(err.message);
         res.status(500).send("Server error");
     }
 });
+
 
 router.put('/updateproduct/:productId', async (req, res) => {
     const { productId } = req.params;
@@ -97,15 +110,36 @@ router.put('/updateproduct/:productId', async (req, res) => {
     }
 });
 
+
 router.get('/getproducts', async (req, res) => {
     try {
         const products = await Product.find();
-        res.json({ message: 'Products fetched successfully', data: products });
+        const productIds = products.map(product => product.productId);
+
+        const stocks = await Stock.find({ productId: { $in: productIds } });
+
+        const productData = products.map(product => {
+            const stockInfo = stocks.find(stock => stock.productId.toString() === product.productId.toString());
+            return {
+                productId: product.productId,
+                name: product.name,
+                description: product.description,
+                category: product.category,
+                subCategory: product.subCategory,
+                unitOfMeasure: product.unitOfMeasure,
+                price: stockInfo ? stockInfo.price : null, // Price from Stock
+                stock: stockInfo ? stockInfo.stock : 0,    // Stock count from Stock
+                expiryDate: stockInfo ? stockInfo.expiryDate : null // Expiry Date
+            };
+        });
+
+        res.json({ status: true, message: 'Products fetched successfully', data: productData });
     } catch (err) {
         console.error(err.message);
-        res.status(500).send("Server error");
+        res.status(500).json({ status: false, message: 'Error in fetching Products' });
     }
 });
+
 
 router.get('/getproduct/:productId', async (req, res) => {
     const { productId } = req.params;
@@ -144,19 +178,19 @@ router.delete('/deleteproduct/:productId', async (req, res) => {
             if (stockExist) {
                 const remainingStock = stockExist.stock;
                 return res.json({
-                    status:false,
+                    status: false,
                     message: 'Cannot delete product with associated sales or stock',
                     remainingStock
                 });
             } else {
-                return res.status(400).json({ status:false,message: 'Cannot delete product with associated sales' });
+                return res.status(400).json({ status: false, message: 'Cannot delete product with associated sales' });
             }
         }
 
         // Delete product
         await Product.deleteOne({ productId });
 
-        res.json({ message: 'Product deleted successfully' });
+        res.json({ status: true, message: 'Product deleted successfully' });
 
     } catch (err) {
         console.error(err.message);
@@ -194,13 +228,13 @@ router.post('/addstock', [
 
             // Check if the stock record already exists for the given product
             const existingStock = await Stock.findOne({ productId });
-            
+
             if (existingStock) {
                 // If stock exists, update the stock quantity
                 existingStock.stock += stock;  // Add new stock to existing stock
                 existingStock.price = price;  // Update price, if necessary
                 existingStock.expiryDate = new Date(expiryDate);  // Update expiry date
-                
+
                 // Save the updated stock
                 await existingStock.save();
             } else {
@@ -280,6 +314,57 @@ router.put('/updatestock/:productId', async (req, res) => {
     }
 });
 
+router.put('/updateProductAndStock/:productId', async (req, res) => {
+    const { productId } = req.params;
+    const { name, description, category, subCategory, unitOfMeasure, stock, price, expiryDate } = req.body;
+
+    try {
+        // Check if product exists
+        const product = await Product.findOne({ productId });
+        if (!product) {
+            return res.status(400).json({ error: 'Product not found' });
+        }
+
+        // Update product details
+        product.name = name || product.name;
+        product.description = description || product.description;
+        product.category = category || product.category;
+        product.subCategory = subCategory || product.subCategory;
+        product.unitOfMeasure = unitOfMeasure || product.unitOfMeasure;
+
+        // Check if stock exists for product
+        let existingStock = await Stock.findOne({ productId });
+        if (!existingStock) {
+            existingStock = new Stock({ productId, stock: 0, price: 0, expiryDate: new Date() });
+        }
+
+        // Update stock information
+
+        existingStock.stock = stock;
+        existingStock.price = price || existingStock.price;
+        existingStock.expiryDate = expiryDate ? new Date(expiryDate) : existingStock.expiryDate;
+        await existingStock.save();
+
+        // Maintain history (optional)
+        if (stock) {
+            const stockHistory = new StockHistory({
+                productId,
+                stockAdded: stock,
+                price,
+                expiryDate: new Date(expiryDate),
+                addedAt: new Date()
+            });
+            await stockHistory.save();
+        }
+
+        await product.save();
+        res.json({ status: true, message: 'Product and stock updated successfully', data: { product, stock: existingStock } });
+
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).json({ status: false, message: 'Error in Updating details' });
+    }
+});
 
 router.post('/createsale', [
     body('products', 'Products array is required').isArray().notEmpty(),
@@ -335,11 +420,11 @@ router.post('/createsale', [
             await sale.save();
         }
 
-        res.json({ message: 'Sale recorded successfully', totalAmount });
+        res.json({ status: true, message: 'Sale recorded successfully', totalAmount });
 
     } catch (err) {
         console.error(err.message);
-        res.status(500).send("Server error");
+        res.json({ status: false, message: 'Error in creating sale' });
     }
 });
 
@@ -357,12 +442,16 @@ router.get('/getsales', async (req, res) => {
         }
 
         res.json({
+            status: true,
             message: 'Sales fetched successfully',
             data: sales
         });
     } catch (err) {
         console.error(err.message);
-        res.status(500).send("Server error");
+        res.json({
+            status: true,
+            message: 'Error in fetching salaes data'
+        });
     }
 });
 
