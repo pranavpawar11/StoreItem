@@ -86,6 +86,7 @@ const Select = ({ label, options, error, ...props }) => (
 );
 
 // Badge Component
+// eslint-disable-next-line
 const Badge = ({ variant = "primary", children }) => {
   const variants = {
     primary: "bg-[#0077b6] text-white",
@@ -121,7 +122,6 @@ const BillingSection = () => {
   const [products, setProducts] = useState([]);
   
   const [alert, setAlert] = useState(null);
-  const [showPopUp, setShowPopUp] = useState(false);
 
   useEffect(() => {
     // Fetch products from the API
@@ -419,9 +419,9 @@ const SalesTable = () => {
   const currentSales = filteredSales.slice(indexOfFirstSale, indexOfLastSale);
 
   // Handle page change
-  const handlePageChange = (pageNumber) => {
-    setCurrentPage(pageNumber);
-  };
+  // const handlePageChange = (pageNumber) => {
+  //   setCurrentPage(pageNumber);
+  // };
 
   // Handle previous/next page change
   const handlePrevious = () => {

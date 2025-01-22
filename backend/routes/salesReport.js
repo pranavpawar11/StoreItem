@@ -43,7 +43,6 @@ router.get('/salesreport', async (req, res) => {
     }
 });
 
-
 router.get('/inventoryreport', async (req, res) => {
     // const { productId } = req.params;
 
@@ -228,6 +227,7 @@ router.get('/top-least-product', async (req, res) => {
                     productId: "$_id",
                     productName: "$productDetails.name",
                     category: "$productDetails.category",
+                    subCategory:"$productDetails.subCategory",
                     totalSales: 1,
                     totalQuantity: 1
                 }
@@ -538,83 +538,6 @@ router.get('/buyer-demographics', async (req, res) => {
         res.json({
             message: 'Detailed buyer demographics with top product preferences generated successfully',
             data: result
-        });
-    } catch (err) {
-        console.error(err.message);
-        res.status(500).send('Server error');
-    }
-});
-
-
-router.get('/dashboard-insights', async (req, res) => {
-    const { startDate, endDate } = req.query;
-
-    try {
-        let salesQuery = {};
-        if (startDate && endDate) {
-            salesQuery.saleDate = { $gte: new Date(startDate), $lte: new Date(endDate) };
-        }
-
-        const salesInsights = await Sales.aggregate([
-            { $match: salesQuery },
-            {
-                $group: {
-                    _id: "$productId",
-                    totalRevenue: { $sum: "$totalSaleAmount" },
-                    totalSalesCount: { $sum: 1 },
-                    averageSaleAmount: { $avg: "$totalSaleAmount" },
-                    maxSaleAmount: { $max: "$totalSaleAmount" },
-                    totalQuantitySold: { $sum: "$quantitySold" }
-                }
-            },
-            {
-                $lookup: {
-                    from: "stocks",
-                    localField: "_id",
-                    foreignField: "productId",
-                    as: "stockDetails"
-                }
-            },
-            {
-                $unwind: {
-                    path: "$stockDetails",
-                    preserveNullAndEmptyArrays: true
-                }
-            },
-            {
-                $addFields: {
-                    remainingStock: {
-                        $subtract: ["$stockDetails.stock", "$totalQuantitySold"]
-                    }
-                }
-            },
-            {
-                $group: {
-                    _id: null,
-                    totalRevenue: { $sum: "$totalRevenue" },
-                    totalSalesCount: { $sum: "$totalSalesCount" },
-                    averageSaleAmount: { $avg: "$averageSaleAmount" },
-                    maxSaleAmount: { $max: "$maxSaleAmount" },
-                    totalQuantitySold: { $sum: "$totalQuantitySold" },
-                    totalRemainingStock: { $sum: "$remainingStock" }
-                }
-            },
-            {
-                $project: {
-                    _id: 0,
-                    totalRevenue: 1,
-                    totalSalesCount: 1,
-                    averageSaleAmount: 1,
-                    maxSaleAmount: 1,
-                    totalQuantitySold: 1,
-                    totalRemainingStock: 1
-                }
-            }
-        ]);
-
-        res.json({
-            message: 'Sales revenue and insights report generated successfully',
-            data: salesInsights.length > 0 ? salesInsights[0] : {}
         });
     } catch (err) {
         console.error(err.message);

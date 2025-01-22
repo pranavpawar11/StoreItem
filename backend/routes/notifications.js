@@ -25,6 +25,7 @@ router.get('/checkallstocksforexpiry', async (req, res) => {
         const stocks = await Stock.find();  // Fetch all stocks
         const today = new Date();
         const alerts = [];
+        const newAlerts = []; // Track newly created alerts
 
         for (const stock of stocks) {
             const { _id: stockId, expiryDate, productId } = stock;
@@ -36,24 +37,40 @@ router.get('/checkallstocksforexpiry', async (req, res) => {
             if (daysUntilExpiry <= 7) alertLevel = 'red';
             else if (daysUntilExpiry <= 15) alertLevel = 'yellow';
 
-            // Create or update expiry alert
-            const alert = await ExpiryAlert.findOneAndUpdate(
-                { stockId },  // Check if alert already exists for this stockId
-                {
+            // Check if an active alert already exists
+            const existingAlert = await ExpiryAlert.findOne({
+                stockId,
+                notificationStatus: { $in: ['pending', 'acknowledged'] }
+            });
+
+            if (existingAlert) {
+                // Update alert level if it changed
+                if (existingAlert.alertLevel !== alertLevel) {
+                    existingAlert.alertLevel = alertLevel;
+                    await existingAlert.save();
+                }
+                alerts.push(existingAlert);
+            } else {
+                // Create new alert only if one doesn't exist
+                const newAlert = await ExpiryAlert.create({
                     stockId,
-                    productId,  // Using productId from stock, which is a string
+                    productId,
                     alertLevel,
                     expiryDate,
                     notificationStatus: 'pending',
                     alertGeneratedOn: today
-                },
-                { upsert: true, new: true }  // If no alert exists, create a new one
-            );
-
-            alerts.push(alert);
+                });
+                alerts.push(newAlert);
+                newAlerts.push(newAlert);
+            }
         }
 
-        res.json({ message: 'Expiry alerts generated successfully', data: alerts });
+        res.json({ 
+            message: 'Expiry alerts processed successfully', 
+            data: alerts,
+            newAlertsCount: newAlerts.length,
+            newAlerts 
+        });
     } catch (err) {
         console.error(err.message);
         res.status(500).send('Server error');
@@ -156,5 +173,69 @@ router.delete('/deleteNotification/:id', async (req, res) => {
     }
 });
 
+// Add this new route to your notifications router
+router.get('/priorityAlerts', async (req, res) => {
+    try {
+        // First try to get urgent (red) alerts
+        let alerts = await ExpiryAlert.aggregate([
+            {
+                $match: {
+                    alertLevel: 'red',
+                    notificationStatus: 'pending'
+                }
+            },
+            {
+                $sort: {
+                    alertGeneratedOn: -1
+                }
+            },
+            {
+                $limit: 6
+            }
+        ]);
 
+        // If we don't have 6 urgent alerts, get remaining alerts by priority
+        if (alerts.length < 6) {
+            const remainingCount = 6 - alerts.length;
+            const additionalAlerts = await ExpiryAlert.aggregate([
+                {
+                    $match: {
+                        $or: [
+                            { alertLevel: 'yellow', notificationStatus: 'pending' },
+                            { alertLevel: 'green', notificationStatus: 'pending' }
+                        ]
+                    }
+                },
+                {
+                    $sort: {
+                        alertLevel: -1,  // This will sort yellow before green
+                        alertGeneratedOn: -1
+                    }
+                },
+                {
+                    $limit: remainingCount
+                }
+            ]);
+
+            alerts = [...alerts, ...additionalAlerts];
+        }
+
+        // Populate product details
+        const populatedAlerts = await Promise.all(
+            alerts.map(async (alert) => {
+                const product = await Product.findOne({ productId: alert.productId });
+                return { ...alert, product };
+            })
+        );
+
+        res.json({
+            message: 'Priority alerts fetched successfully',
+            data: populatedAlerts,
+            urgentCount: alerts.filter(a => a.alertLevel === 'red').length
+        });
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).send('Server error');
+    }
+});
 module.exports = router;

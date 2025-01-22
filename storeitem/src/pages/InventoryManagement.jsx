@@ -2,103 +2,12 @@ import React, { useState, useMemo, useEffect } from "react";
 import { Search, Edit2, Trash2, Eye, Plus, Package } from "lucide-react";
 import AlertPopup from "../components/UI/AlertPopup";
 // Custom Button Component
-const Button = ({
-  children,
-  variant = "primary",
-  className = "",
-  ...props
-}) => {
-  const baseStyles =
-    "px-4 py-2 rounded-md font-medium transition-colors duration-200 flex items-center gap-2";
-  const variants = {
-    primary: "bg-[#0077b6] hover:bg-[#0066a0] text-white",
-    secondary: "bg-[#00b4d8] hover:bg-[#009dc0] text-white",
-    outline: "border border-[#ced4da] hover:bg-[#f8f9fa] text-[#343a40]",
-    danger: "bg-[#d00000] hover:bg-[#b00000] text-white",
-  };
+import Button from "../components/UI/Button";
+import Input from "../components/UI/Input";
+import Select from "../components/UI/Select";
+import Modal from "../components/UI/Modal";
+import Badge from "../components/UI/Badge";
 
-  return (
-    <button
-      className={`${baseStyles} ${variants[variant]} ${className}`}
-      {...props}
-    >
-      {children}
-    </button>
-  );
-};
-
-// Custom Input Component
-const Input = ({ icon, ...props }) => (
-  <div className="relative">
-    {icon && (
-      <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#6c757d]">
-        {icon}
-      </span>
-    )}
-    <input
-      className={`w-full px-4 py-2 rounded-md border border-[#ced4da] focus:outline-none focus:border-[#0077b6] ${
-        icon ? "pl-10" : ""
-      }`}
-      {...props}
-    />
-  </div>
-);
-
-// Custom Select Component
-const Select = ({ options, value, onChange, placeholder }) => (
-  <select
-    value={value}
-    onChange={onChange}
-    className="w-full px-4 py-2 rounded-md border border-[#ced4da] focus:outline-none focus:border-[#0077b6] bg-white"
-  >
-    {placeholder && <option value="">{placeholder}</option>}
-    {options.map((option) => (
-      <option key={option.value} value={option.value}>
-        {option.label}
-      </option>
-    ))}
-  </select>
-);
-
-// Custom Modal Component
-const Modal = ({ isOpen, onClose, title, children }) => {
-  if (!isOpen) return null;
-
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg w-full max-w-md p-6">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-semibold text-[#343a40]">{title}</h2>
-          <button
-            onClick={onClose}
-            className="text-[#6c757d] hover:text-[#343a40]"
-          >
-            ✕
-          </button>
-        </div>
-        {children}
-      </div>
-    </div>
-  );
-};
-
-// Custom Badge Component
-const Badge = ({ variant, children }) => {
-  const variants = {
-    success: "bg-[#80ed99] text-[#2d6a4f]",
-    warning: "bg-[#ffca3a] text-[#ffcc00]",
-    danger: "bg-[#ff595e] text-[#d00000]",
-    secondary: "bg-[#f8f9fa] text-[#6c757d]",
-  };
-
-  return (
-    <span
-      className={`px-2 py-1 rounded-full text-sm font-medium ${variants[variant]}`}
-    >
-      {children}
-    </span>
-  );
-};
 
 const InventoryManagement = () => {
   // State management
@@ -113,6 +22,7 @@ const InventoryManagement = () => {
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [isAddStockModalOpen, setIsAddStockModalOpen] = useState(false);
   const [newStockAmount, setNewStockAmount] = useState(0);
+  // eslint-disable-next-line
   const [newPrice, setPrice] = useState(0);
   const [alert, setAlert] = useState(null);
   const [expiryDate, setExpiryDate] = useState("");
@@ -323,7 +233,7 @@ const InventoryManagement = () => {
           }
         );
 
-        const result = await response.json();
+        // const result = await response.json();
         if (response.ok) {
           // Add the product to the local state and close modal
           setProducts((prev) => [

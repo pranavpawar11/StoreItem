@@ -14,65 +14,8 @@ import {
   LineChart,
   Line,
 } from "recharts";
-
-// Custom Combobox Component
-const Combobox = ({ options, value, onChange, placeholder }) => {
-  const [isOpen, setIsOpen] = useState(false);
-  const [searchTerm, setSearchTerm] = useState("");
-
-  const filteredOptions = options.filter((option) =>
-    option.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
-  return (
-    <div className="relative">
-      <input
-        type="text"
-        value={searchTerm}
-        onChange={(e) => setSearchTerm(e.target.value)}
-        onFocus={() => setIsOpen(true)}
-        placeholder={placeholder}
-        className="w-full px-4 py-2 border border-[#ced4da] rounded-md focus:outline-none focus:border-[#0077b6]"
-      />
-      {isOpen && (
-        <div className="absolute z-10 w-full mt-1 bg-white border border-[#ced4da] rounded-md shadow-lg max-h-60 overflow-auto">
-          {filteredOptions.map((option, index) => (
-            <div
-              key={index}
-              className="px-4 py-2 cursor-pointer hover:bg-[#f8f9fa]"
-              onClick={() => {
-                onChange(option);
-                setSearchTerm(option);
-                setIsOpen(false);
-              }}
-            >
-              {option}
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-};
-
-// Stat Card Component
-const StatCard = ({ title, value, trend, color }) => (
-  <div className="bg-white p-6 rounded-lg shadow-sm">
-    <h3 className="text-sm text-[#6c757d] mb-2">{title}</h3>
-    <p className="text-2xl font-bold" style={{ color }}>
-      {value}
-    </p>
-    {trend && (
-      <p
-        className={`text-sm mt-2 ${
-          trend > 0 ? "text-[#2d6a4f]" : "text-[#d00000]"
-        }`}
-      >
-        {trend > 0 ? "↑" : "↓"} {Math.abs(trend)}% vs last month
-      </p>
-    )}
-  </div>
-);
+import Combobox from "../components/UI/Combobox"
+import StatCard from "../components/UI/StatCard"
 
 const BrandAnalysis = () => {
   const [data, setData] = useState(null);
@@ -102,6 +45,7 @@ const BrandAnalysis = () => {
     if (selectedBrand) {
       fetchData();
     }
+    // eslint-disable-next-line
   }, [selectedBrand, startDate, endDate]);
 
   const fetchBrands = async () => {
@@ -144,7 +88,7 @@ const BrandAnalysis = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[#f8f9fa] p-6">
+    <div className="space-y-6">
       {/* Header and Controls */}
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-[#343a40] mb-6">

@@ -1,9 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { Calendar, Download, Filter, Search, RefreshCcw } from "lucide-react";
+import { Download, Search, RefreshCcw } from "lucide-react";
 import {
-  LineChart,
-  Line,
   BarChart,
   Bar,
   XAxis,
@@ -48,6 +46,7 @@ const ReportsDashboard = () => {
   useEffect(() => {
     // Fetch data immediately when report type changes
     fetchReport();
+    // eslint-disable-next-line
   }, [reportType]); // Only depend on reportType
 
   // Add a separate effect for date changes
@@ -56,6 +55,7 @@ const ReportsDashboard = () => {
     if ((startDate && endDate) || (!startDate && !endDate)) {
       fetchReport();
     }
+    // eslint-disable-next-line
   }, [startDate, endDate]);
 
   // Add a clear dates button in the header controls section
@@ -69,7 +69,7 @@ const ReportsDashboard = () => {
 
     let csvContent = "";
     let filename = "";
-
+    // eslint-disable-next-line
     switch (reportType) {
       case "top-least-product":
         filename = "top-least-products-report.csv";
@@ -138,7 +138,7 @@ const ReportsDashboard = () => {
     );
 
     return (
-      <div className="space-y-4">
+      <div className="space-y-6">
         <div className="flex gap-4 mb-4">
           <button
             onClick={() => setActiveTab("top")}
@@ -176,7 +176,7 @@ const ReportsDashboard = () => {
                   <td className="px-4 py-2 border-b">{item.subCategory}</td>
                   <td className="px-4 py-2 border-b">{item.category}</td>
                   <td className="px-4 py-2 border-b text-right">
-                    ${item.totalSales.toLocaleString()}
+                    ₹{item.totalSales.toLocaleString()}
                   </td>
                   <td className="px-4 py-2 border-b text-right">
                     {item.totalQuantity}
@@ -194,7 +194,7 @@ const ReportsDashboard = () => {
             <YAxis />
             <Tooltip />
             <Legend />
-            <Bar dataKey="totalSales" fill="#0077b6" name="Total Sales ($)" />
+            <Bar dataKey="totalSales" fill="#0077b6" name="Total Sales (₹)" />
             <Bar dataKey="totalQuantity" fill="#00b4d8" name="Quantity Sold" />
           </BarChart>
         </ResponsiveContainer>
@@ -228,7 +228,7 @@ const ReportsDashboard = () => {
                       {item.totalQuantitySold}
                     </td>
                     <td className="px-4 py-2 border-b text-right">
-                      ${item.totalSales.toLocaleString()}
+                      ₹{item.totalSales.toLocaleString()}
                     </td>
                   </tr>
                 ))}
@@ -258,7 +258,7 @@ const ReportsDashboard = () => {
                       {item.totalQuantitySold}
                     </td>
                     <td className="px-4 py-2 border-b text-right">
-                      ${item.totalSales.toLocaleString()}
+                      ₹{item.totalSales.toLocaleString()}
                     </td>
                   </tr>
                 ))}
@@ -286,7 +286,7 @@ const ReportsDashboard = () => {
               <YAxis />
               <Tooltip />
               <Legend />
-              <Bar dataKey="totalSales" fill="#0077b6" name="Total Sales ($)" />
+              <Bar dataKey="totalSales" fill="#0077b6" name="Total Sales (₹)" />
               <Bar
                 dataKey="totalQuantitySold"
                 fill="#00b4d8"
@@ -318,7 +318,7 @@ const ReportsDashboard = () => {
                       {item.totalStock}
                     </td>
                     <td className="px-4 py-2 border-b text-right">
-                      ${item.totalSales?.toLocaleString() || 0}
+                      ₹{item.totalSales?.toLocaleString() || 0}
                     </td>
                     <td className="px-4 py-2 border-b text-right">
                       {item.totalQuantitySold || 0}
@@ -352,7 +352,7 @@ const ReportsDashboard = () => {
                       <li key={idx} className="text-sm">
                         <div className="font-medium">{product.productName}</div>
                         <div className="text-[#6c757d]">
-                          Sales: ${product.totalSales.toLocaleString()}
+                          Sales: ₹{product.totalSales.toLocaleString()}
                         </div>
                         <div className="text-[#6c757d]">
                           Qty: {product.totalQuantitySold}
@@ -370,7 +370,7 @@ const ReportsDashboard = () => {
   };
 
   return (
-    <div className="p-6 bg-[#f8f9fa] min-h-screen">
+    <div className="space-y-6">
       <div className="max-w-7xl mx-auto space-y-6">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white p-4 rounded-lg shadow">
           <div className="flex flex-wrap gap-4">
@@ -381,7 +381,9 @@ const ReportsDashboard = () => {
             >
               <option value="top-least-product">Top/Least Products</option>
               <option value="inventory-movement">Inventory Movement</option>
-              <option value="sales-and-stock-by-category">Category Analysis</option>
+              <option value="sales-and-stock-by-category">
+                Category Analysis
+              </option>
               <option value="buyer-demographics">Buyer Demographics</option>
             </select>
 
@@ -423,7 +425,10 @@ const ReportsDashboard = () => {
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10 pr-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-[#0077b6]"
               />
-              <Search className="absolute left-3 top-2.5 text-[#6c757d]" size={20} />
+              <Search
+                className="absolute left-3 top-2.5 text-[#6c757d]"
+                size={20}
+              />
             </div>
 
             <button
@@ -443,10 +448,11 @@ const ReportsDashboard = () => {
           </div>
         ) : (
           <div className="bg-white p-6 rounded-lg shadow">
-            {reportType === 'top-least-product' && renderTopLeastProducts()}
-            {reportType === 'inventory-movement' && renderInventoryMovement()}
-            {reportType === 'sales-and-stock-by-category' && renderCategoryReport()}
-            {reportType === 'buyer-demographics' && renderDemographics()}
+            {reportType === "top-least-product" && renderTopLeastProducts()}
+            {reportType === "inventory-movement" && renderInventoryMovement()}
+            {reportType === "sales-and-stock-by-category" &&
+              renderCategoryReport()}
+            {reportType === "buyer-demographics" && renderDemographics()}
           </div>
         )}
       </div>
