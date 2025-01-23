@@ -21,7 +21,6 @@ const getNextSequence = async (name) => {
     }
 };
 
-
 router.post('/createcategory', fetchuser, [
     body('name', 'Category name is required').not().isEmpty(),
     body('description', 'Description is optional').optional().isString()
@@ -87,7 +86,6 @@ router.get('/category/:categoryId', async (req, res) => {
     }
 });
 
-
 router.put('/updatecategory/:categoryId', [
     body('name', 'Category name should be a string').optional().isString(),
     body('description', 'Description should be a string').optional().isString()
@@ -128,7 +126,6 @@ router.put('/updatecategory/:categoryId', [
         res.status(500).send('Server error');
     }
 });
-
 
 router.delete('/deletecategory/:categoryId', async (req, res) => {
     const { categoryId } = req.params;

@@ -11,7 +11,7 @@ const  _dirname = path.resolve();
 app.use(cors());
 app.use(express.json())
 
-// app.use('/api/auth',require('./routes/auth'));
+app.use('/api/auth',require('./routes/auth'));
 // app.use('/api/transactions',require('./routes/transactions'));
 
 app.use('/api/products',require('./routes/products'));

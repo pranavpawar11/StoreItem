@@ -75,7 +75,6 @@ router.get('/inventoryreport', async (req, res) => {
     }
 });
 
-
 router.get('/profitlossreport', async (req, res) => {
     const { startDate, endDate, productId } = req.query;
 
@@ -189,7 +188,6 @@ router.get('/salesbyproduct', async (req, res) => {
         res.status(500).send('Server error');
     }
 });
-
 
 router.get('/top-least-product', async (req, res) => {
     const { startDate, endDate } = req.query;
@@ -611,8 +609,6 @@ router.get('/sales-per-unit-analysis', async (req, res) => {
         res.status(500).send('Server error');
     }
 });
-
-
 
 // Get brand analysis report
 router.get('/brands', async (req, res) => {

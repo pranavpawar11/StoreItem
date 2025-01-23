@@ -141,24 +141,6 @@ router.get('/getproducts', async (req, res) => {
 });
 
 
-router.get('/getproduct/:productId', async (req, res) => {
-    const { productId } = req.params;
-
-    try {
-        const product = await Product.findOne({ productId });
-        if (!product) {
-            return res.status(400).json({ error: 'Product not found' });
-        }
-
-        res.json({ message: 'Product fetched successfully', data: product });
-
-    } catch (err) {
-        console.error(err.message);
-        res.status(500).send("Server error");
-    }
-});
-
-
 router.delete('/deleteproduct/:productId', async (req, res) => {
     const { productId } = req.params;
 
@@ -273,46 +255,6 @@ router.post('/addstock', [
     }
 });
 
-router.put('/updatestock/:productId', async (req, res) => {
-    const { productId } = req.params;
-    const { stock, price, expiryDate } = req.body;
-
-    try {
-        // Check if product exists
-        const product = await Product.findOne({ productId });
-        if (!product) {
-            return res.status(400).json({ error: 'Product not found' });
-        }
-
-        // Check if stock exists for product
-        const existingStock = await Stock.findOne({ productId });
-        if (!existingStock) {
-            return res.status(400).json({ error: 'No stock record found for this product' });
-        }
-
-        // Update stock information
-        existingStock.stock += stock;
-        existingStock.price = price || existingStock.price;
-        existingStock.expiryDate = new Date(expiryDate) || existingStock.expiryDate;
-        await existingStock.save();
-
-        // Maintain history (optional)
-        const stockHistory = new StockHistory({
-            productId,
-            stockAdded: stock,
-            price,
-            expiryDate: new Date(expiryDate),
-            addedAt: new Date()
-        });
-        await stockHistory.save();
-
-        res.json({ message: 'Stock updated successfully', data: existingStock });
-
-    } catch (err) {
-        console.error(err.message);
-        res.status(500).send("Server error");
-    }
-});
 
 router.put('/updateProductAndStock/:productId', async (req, res) => {
     const { productId } = req.params;
@@ -456,6 +398,67 @@ router.get('/getsales', async (req, res) => {
 });
 
 
+
+// Extra APIs
+
+router.get('/getproduct/:productId', async (req, res) => {
+    const { productId } = req.params;
+
+    try {
+        const product = await Product.findOne({ productId });
+        if (!product) {
+            return res.status(400).json({ error: 'Product not found' });
+        }
+
+        res.json({ message: 'Product fetched successfully', data: product });
+
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).send("Server error");
+    }
+});
+
+router.put('/updatestock/:productId', async (req, res) => {
+    const { productId } = req.params;
+    const { stock, price, expiryDate } = req.body;
+
+    try {
+        // Check if product exists
+        const product = await Product.findOne({ productId });
+        if (!product) {
+            return res.status(400).json({ error: 'Product not found' });
+        }
+
+        // Check if stock exists for product
+        const existingStock = await Stock.findOne({ productId });
+        if (!existingStock) {
+            return res.status(400).json({ error: 'No stock record found for this product' });
+        }
+
+        // Update stock information
+        existingStock.stock += stock;
+        existingStock.price = price || existingStock.price;
+        existingStock.expiryDate = new Date(expiryDate) || existingStock.expiryDate;
+        await existingStock.save();
+
+        // Maintain history (optional)
+        const stockHistory = new StockHistory({
+            productId,
+            stockAdded: stock,
+            price,
+            expiryDate: new Date(expiryDate),
+            addedAt: new Date()
+        });
+        await stockHistory.save();
+
+        res.json({ message: 'Stock updated successfully', data: existingStock });
+
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).send("Server error");
+    }
+});
+
 router.get('/getsales/:productId', async (req, res) => {
     try {
         const { productId } = req.params;
@@ -509,7 +512,6 @@ router.get('/getstockhistory/:productId', async (req, res) => {
     }
 });
 
-// Get sales analytics (aggregated data)
 router.get('/salesanalytics', async (req, res) => {
     try {
         // Aggregate data for total sales per product

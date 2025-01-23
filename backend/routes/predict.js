@@ -11,7 +11,7 @@ router.post('/train-stock-model', async (req, res) => {
         const salesData = await Sales.find().lean();
 
         // Log sales data for debugging
-        console.log("Fetched Sales Data:", salesData);
+        // console.log("Fetched Sales Data:", salesData);
 
         // Map the sales data into the required format
         const inputData = salesData.map(sale => ({
@@ -67,7 +67,7 @@ router.post('/train-stock-model-v2', async (req, res) => {
             totalSaleAmount: sale.totalSaleAmount
         }));
 
-        console.log("Sending data to Flask for training:", inputData);  // Debug log
+        // console.log("Sending data to Flask for training:", inputData);  // Debug log
 
         // Send the sales data to the Flask API for training the second model (SARIMA)
         const response = await axios.post('http://localhost:8000/train-stock-model-v2', {
