@@ -255,7 +255,7 @@ const ExpiryNotifications = () => {
 
               <div className="text-sm">
                 <p className="text-[#6c757d]">
-                  Expiry Date: {new Date(notification.expiryDate).toLocaleDateString()}
+                  Expiry Date: {new Date(notification.alertGeneratedOn).toLocaleDateString()}
                 </p>
                 <p className="text-[#6c757d]">
                   Status: {notification.notificationStatus}

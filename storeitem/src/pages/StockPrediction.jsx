@@ -1,4 +1,4 @@
-import React, { useState ,useEffect} from "react";
+import React, { useState, useEffect } from "react";
 // import {
 //   LineChart,
 //   XAxis,
@@ -8,7 +8,7 @@ import React, { useState ,useEffect} from "react";
 //   CartesianGrid,
 //   Legend,
 // } from "recharts";
-import {  RefreshCcw } from "lucide-react";
+import { RefreshCcw } from "lucide-react";
 import CustomAlert from "../components/UI/CustomAlert";
 
 const StockPrediction = () => {
@@ -33,7 +33,7 @@ const StockPrediction = () => {
           const fetchedProducts = result.data.map((product) => ({
             id: product.productId,
             name: product.name,
-            price : product.price,
+            price: product.price,
             description: product.description,
             category: product.category,
             subCategory: product.subCategory,
@@ -190,7 +190,7 @@ const StockPrediction = () => {
                 <option value="">Select a product</option>
                 {products.map((product) => (
                   <option key={product.id} value={product.id}>
-                    {product.category} : {product.name} 
+                    {product.category} : {product.name}
                   </option>
                 ))}
               </select>
@@ -216,7 +216,11 @@ const StockPrediction = () => {
                   className="w-full p-2 border border-[#ced4da] rounded-md"
                   value={predictionLength}
                   onChange={(e) => setPredictionLength(e.target.value)}
-                  placeholder="Enter number of periods"
+                  placeholder={
+                    selectedModel === "v1"
+                      ? "Enter forecast-duration in months"
+                      : "Enter duration"
+                  }
                 />
               )}
             </div>
@@ -302,7 +306,9 @@ const StockPrediction = () => {
                       quantity for the forecast duration (4 periods), based on
                       the average demand observed in the past sales data.
                       <br />
-                      <br />If ouput is null then * Model does not have sufficient data for training * 
+                      <br />
+                      If ouput is null then * Model does not have sufficient
+                      data for training *
                     </p>
                   </div>
                 </div>
@@ -342,7 +348,9 @@ const StockPrediction = () => {
                       the model has predicted **499.99 units** based on the
                       forecast length of 2 days.
                       <br />
-                      <br />If ouput is null then * Model does not have sufficient data for training * 
+                      <br />
+                      If ouput is null then * Model does not have sufficient
+                      data for training *
                     </p>
                   </div>
                 </div>
@@ -370,14 +378,17 @@ const StockPrediction = () => {
                         </tr>
                       </thead>
                       <tbody>
-                        {predictionResults && predictionResults.data.map((item, index) => (
-                          <tr key={index}>
-                            <td className="border px-4 py-2">{item.period}</td>
-                            <td className="border px-4 py-2">
-                              {item.smoothedValue.toFixed(2)}
-                            </td>
-                          </tr>
-                        ))}
+                        {predictionResults &&
+                          predictionResults.data.map((item, index) => (
+                            <tr key={index}>
+                              <td className="border px-4 py-2">
+                                {item.period}
+                              </td>
+                              <td className="border px-4 py-2">
+                                {item.smoothedValue.toFixed(2)}
+                              </td>
+                            </tr>
+                          ))}
                       </tbody>
                     </table>
                   </div>
@@ -403,7 +414,8 @@ const StockPrediction = () => {
                       value takes into account more recent sales data, making
                       the prediction more responsive to recent trends in stock
                       movement.
-                      <br />- If ouput is null then * Model does not have sufficient data for training * 
+                      <br />- If ouput is null then * Model does not have
+                      sufficient data for training *
                     </p>
                   </div>
                 </div>

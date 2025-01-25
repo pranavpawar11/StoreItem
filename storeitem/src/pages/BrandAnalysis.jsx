@@ -14,8 +14,8 @@ import {
   LineChart,
   Line,
 } from "recharts";
-import Combobox from "../components/UI/Combobox"
-import StatCard from "../components/UI/StatCard"
+import Combobox from "../components/UI/Combobox";
+import StatCard from "../components/UI/StatCard";
 
 const BrandAnalysis = () => {
   const [data, setData] = useState(null);
@@ -92,7 +92,7 @@ const BrandAnalysis = () => {
       {/* Header and Controls */}
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-[#343a40] mb-6">
-          Brand Analysis {selectedBrand ? "for " +selectedBrand : ""}
+          Brand Analysis {selectedBrand ? "for " + selectedBrand : ""}
         </h1>
 
         {error && (
@@ -131,7 +131,7 @@ const BrandAnalysis = () => {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <StatCard
               title="Total Revenue"
-              value={`$${data.salesBySubcategory[0]?.totalSales.toLocaleString()}`}
+              value={`₹${data.salesBySubcategory[0]?.totalSales.toLocaleString()}`}
               trend={5.2}
               color={colors.primary}
             />
@@ -143,7 +143,7 @@ const BrandAnalysis = () => {
             />
             <StatCard
               title="Average Order Value"
-              value={`$${(
+              value={`₹${(
                 data.salesBySubcategory[0]?.totalSales /
                   data.salesBySubcategory[0]?.totalQuantitySold || 0
               ).toFixed(2)}`}
@@ -271,7 +271,7 @@ const BrandAnalysis = () => {
                         <tr key={index} className="border-b border-[#ced4da]">
                           <td className="p-2">{product.productName}</td>
                           <td className="text-right p-2">
-                            ${product.totalSales.toLocaleString()}
+                            ₹{product.totalSales.toLocaleString()}
                           </td>
                           <td className="text-right p-2">
                             {product.totalQuantitySold.toLocaleString()}
