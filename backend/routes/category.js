@@ -21,7 +21,7 @@ const getNextSequence = async (name) => {
     }
 };
 
-router.post('/createcategory', fetchuser, [
+router.post('/createcategory', [
     body('name', 'Category name is required').not().isEmpty(),
     body('description', 'Description is optional').optional().isString()
 ], async (req, res) => {

@@ -10,13 +10,14 @@ import BrandAnalysis from './pages/BrandAnalysis';
 import Reports from './pages/Reports';
 import ExpiryAlerts from './pages/ExpiryNotifications';
 import Profile from './pages/Profile';
+import Membership from './pages/Membership'
 const App = () => {
   return (
     <BrowserRouter>
       <Routes>
         {/* Public Routes */}
         <Route path="/login" element={<Login />} />
-        
+        <Route path="/membership" element={<Membership />} />
         {/* Protected Routes */}
         <Route element={<MainLayout />}>
           <Route path="/" element={<Dashboard />} />
@@ -27,6 +28,8 @@ const App = () => {
           <Route path="/reports" element={<Reports />} />
           <Route path="/expiry-alerts" element={<ExpiryAlerts />} />
           <Route path="/profile" element={<Profile />} />
+          
+          
         </Route>
 
         {/* Redirect root to dashboard */}

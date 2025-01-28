@@ -136,8 +136,8 @@ const StockPrediction = () => {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="max-w-7xl mx-auto">
+    <div className="space-y-6 dark:text-gray-50 dark:bg-gray-800">
+      <div className="max-w-7xl mx-auto dark:text-gray-50 dark:bg-gray-800">
         {/* <h1 className="text-3xl font-bold text-[#343a40] mb-8">
           Stock Prediction Dashboard
         </h1> */}
@@ -151,19 +151,19 @@ const StockPrediction = () => {
         )}
 
         {/* Input Section */}
-        <div className="bg-white p-6 rounded-lg shadow-md mb-6">
-          <h2 className="text-xl font-semibold text-[#343a40] mb-4">
+        <div className="bg-white p-6 rounded-lg shadow-md mb-6 dark:text-gray-50 dark:bg-gray-800">
+          <h2 className="text-xl font-semibold text-[#343a40] dark:text-gray-50 mb-4">
             Model Selection & Parameters
           </h2>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Model Selection */}
             <div>
-              <label className="block text-sm font-medium text-[#343a40] mb-2">
+              <label className="block text-sm font-medium text-[#343a40] mb-2 dark:text-gray-50">
                 Prediction Model
               </label>
               <select
-                className="w-full p-2 border border-[#ced4da] rounded-md"
+                className="w-full p-2 border border-[#ced4da] rounded-md dark:text-gray-50 dark:bg-gray-800"
                 value={selectedModel}
                 onChange={(e) => setSelectedModel(e.target.value)}
               >
@@ -175,11 +175,11 @@ const StockPrediction = () => {
 
             {/* Product Selection */}
             <div>
-              <label className="block text-sm font-medium text-[#343a40] mb-2">
+              <label className="block text-sm font-medium text-[#343a40] dark:text-gray-50 mb-2">
                 Select Product
               </label>
               <select
-                className="w-full p-2 border border-[#ced4da] rounded-md"
+                className="w-full p-2 border border-[#ced4da] rounded-md dark:text-gray-50 dark:bg-gray-800"
                 value={selectedProduct?.id || ""}
                 onChange={(e) =>
                   setSelectedProduct(
@@ -198,12 +198,12 @@ const StockPrediction = () => {
 
             {/* Prediction Length */}
             <div>
-              <label className="block text-sm font-medium text-[#343a40] mb-2">
+              <label className="block text-sm font-medium text-[#343a40] dark:text-gray-50 mb-2">
                 Prediction Length
               </label>
               {selectedModel === "v3" ? (
                 <select
-                  className="w-full p-2 border border-[#ced4da] rounded-md"
+                  className="w-full p-2 border border-[#ced4da] rounded-md dark:text-gray-50 dark:bg-gray-800"
                   value={predictionLength}
                   onChange={(e) => setPredictionLength(e.target.value)}
                 >
@@ -213,7 +213,7 @@ const StockPrediction = () => {
               ) : (
                 <input
                   type="number"
-                  className="w-full p-2 border border-[#ced4da] rounded-md"
+                  className="w-full p-2 border border-[#ced4da] rounded-md dark:text-gray-50 dark:bg-gray-800"
                   value={predictionLength}
                   onChange={(e) => setPredictionLength(e.target.value)}
                   placeholder={
@@ -228,11 +228,11 @@ const StockPrediction = () => {
             {/* Time Unit (for v2 and v3) */}
             {selectedModel !== "v1" && (
               <div>
-                <label className="block text-sm font-medium text-[#343a40] mb-2">
+                <label className="block text-sm font-medium text-[#343a40] mb-2 dark:text-gray-50 dark:bg-gray-800">
                   Time Unit
                 </label>
                 <select
-                  className="w-full p-2 border border-[#ced4da] rounded-md"
+                  className="w-full p-2 border border-[#ced4da] rounded-md dark:text-gray-50 dark:bg-gray-800"
                   value={predictionUnit}
                   onChange={(e) => setPredictionUnit(e.target.value)}
                 >
@@ -268,31 +268,32 @@ const StockPrediction = () => {
 
         {/* Results Section */}
         {predictionResults && (
-          <div className="bg-white p-6 rounded-lg shadow-md">
-            <h2 className="text-xl font-semibold text-[#343a40] mb-4">
+          <div className="bg-white p-6 rounded-lg shadow-md dark:text-gray-50 dark:bg-gray-800">
+            <h2 className="text-xl font-semibold text-[#343a40] mb-4 dark:text-gray-50 dark:bg-gray-800">
               Prediction Results
             </h2>
 
-            <div className="bg-[#f8f9fa] p-4 rounded-lg mb-6">
+            <div className="bg-[#f8f9fa] p-4 rounded-lg mb-6 dark:text-gray-50 dark:bg-gray-900">
               {selectedModel === "v1" && (
                 <div>
-                  <h3 className="text-lg font-medium text-[#343a40] mb-2">
+                  <h3 className="text-lg font-medium text-[#343a40] mb-2 dark:text-gray-50">
                     Predicted Stock Quantity
                   </h3>
-                  <p className="text-2xl font-bold text-[#0077b6]">
-                    {Math.round(
-                      predictionResults.data
-                        .predicted_stock_quantity_for_period[0]
-                    )}{" "}
+                  <p className="text-2xl font-bold text-[#0077b6] dark:text-gray-50">
+                    {predictionResults &&
+                      Math.round(
+                        predictionResults.data
+                          .predicted_stock_quantity_for_period[0]
+                      )}{" "}
                     units
                   </p>
 
                   {/* Explanation for v1 */}
-                  <div className="mt-6 bg-[#f8f9fa] p-4 rounded-md shadow-sm">
-                    <h4 className="text-lg font-semibold text-[#343a40] mb-2">
+                  <div className="mt-6 bg-[#f8f9fa] p-4 rounded-md shadow-sm dark:text-gray-50 dark:bg-gray-800 ">
+                    <h4 className="text-lg font-semibold text-[#343a40] mb-2 dark:text-gray-50">
                       How the Prediction is Made (v1)
                     </h4>
-                    <p className="text-sm text-gray-700">
+                    <p className="text-sm text-gray-700 dark:text-gray-50">
                       The predicted stock quantity shown above is based on the
                       standard forecasting method that uses historical sales
                       data, applying the specified forecast duration. This
@@ -316,10 +317,10 @@ const StockPrediction = () => {
 
               {selectedModel === "v2" && (
                 <div>
-                  <h3 className="text-lg font-medium text-[#343a40] mb-2">
+                  <h3 className="text-lg font-medium text-[#343a40] mb-2 dark:text-gray-50">
                     Predicted Stock Quantity
                   </h3>
-                  <p className="text-2xl font-bold text-[#0077b6]">
+                  <p className="text-2xl font-bold text-[#0077b6] dark:text-gray-50">
                     {Math.round(
                       predictionResults.data.predicted_stock_quantity
                     )}{" "}
@@ -327,11 +328,11 @@ const StockPrediction = () => {
                   </p>
 
                   {/* Explanation for v2 */}
-                  <div className="mt-6 bg-[#f8f9fa] p-4 rounded-md shadow-sm">
-                    <h4 className="text-lg font-semibold text-[#343a40] mb-2">
+                  <div className="mt-6 bg-[#f8f9fa] p-4 rounded-md shadow-sm dark:text-gray-50 dark:bg-gray-800">
+                    <h4 className="text-lg font-semibold text-[#343a40] mb-2 dark:text-gray-50 ">
                       How the Prediction is Made (v2)
                     </h4>
-                    <p className="text-sm text-gray-700">
+                    <p className="text-sm text-gray-700 dark:text-gray-50">
                       The predicted stock quantity shown above is calculated by
                       a more advanced method, incorporating a set prediction
                       length (e.g., 2 days) and a unit of time (e.g., days). The
@@ -358,10 +359,10 @@ const StockPrediction = () => {
 
               {selectedModel === "v3" && (
                 <div>
-                  <h3 className="text-lg font-medium text-[#343a40] mb-2">
+                  <h3 className="text-lg font-medium text-[#343a40] mb-2 dark:text-gray-50 dark:bg-gray-900">
                     Predictions by Period
                   </h3>
-                  <p className="mb-4 text-sm text-gray-600">
+                  <p className="mb-4 text-sm text-gray-600 dark:text-gray-50">
                     The table below shows the predicted smoothed stock values
                     for each period based on the chosen prediction model (SMA or
                     Exponential Smoothing). The "Period" column corresponds to
@@ -379,6 +380,7 @@ const StockPrediction = () => {
                       </thead>
                       <tbody>
                         {predictionResults &&
+                        Array.isArray(predictionResults.data) ? (
                           predictionResults.data.map((item, index) => (
                             <tr key={index}>
                               <td className="border px-4 py-2">
@@ -388,17 +390,27 @@ const StockPrediction = () => {
                                 {item.smoothedValue.toFixed(2)}
                               </td>
                             </tr>
-                          ))}
+                          ))
+                        ) : (
+                          <tr>
+                            <td
+                              colSpan="2"
+                              className="border px-4 py-2 text-center"
+                            >
+                              No prediction data available.
+                            </td>
+                          </tr>
+                        )}
                       </tbody>
                     </table>
                   </div>
 
                   {/* Example Explanation */}
-                  <div className="mt-6 bg-[#f8f9fa] p-4 rounded-md shadow-sm">
-                    <h4 className="text-lg font-semibold text-[#343a40] mb-2">
+                  <div className="mt-6 bg-[#f8f9fa] p-4 rounded-md shadow-sm dark:text-gray-50 dark:bg-gray-800">
+                    <h4 className="text-lg font-semibold text-[#343a40] mb-2 dark:text-gray-50">
                       Example
                     </h4>
-                    <p className="text-sm text-gray-700">
+                    <p className="text-sm text-gray-700 dark:text-gray-50">
                       For example, let's say the model predicted a smoothed
                       value of **58.33 units** for the period **2025-01**. This
                       means that based on the chosen method (either SMA or

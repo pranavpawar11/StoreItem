@@ -388,7 +388,7 @@ const InventoryManagement = () => {
       {/* <div className="bg-white rounded-lg shadow-sm p-6"> */}
       {/* Header */}
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-[#343a40]">
+        <h1 className="text-2xl font-bold text-[#343a40] dark:text-white">
           Inventory Management
         </h1>
 
@@ -404,12 +404,12 @@ const InventoryManagement = () => {
         </div>
       </div>
       {/* Search and Filters */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 ">
         <Input
           placeholder="Search products..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          icon={<Search className="h-4 w-4" />}
+          icon={<Search className="h-4 w-4 dark:text-gray-50" />}
         />
         <Select
           value={categoryFilter}
@@ -432,26 +432,26 @@ const InventoryManagement = () => {
         <table className="w-full">
           <thead>
             <tr className="border-b border-[#ced4da]">
-              <th className="text-left p-4 text-[#6c757d] font-semibold">ID</th>
-              <th className="text-left p-4 text-[#6c757d] font-semibold">
+              <th className="text-left p-4 text-[#6c757d] font-semibold dark:text-gray-50">ID</th>
+              <th className="text-left p-4 text-[#6c757d] font-semibold dark:text-gray-50">
                 Name
               </th>
-              <th className="text-left p-4 text-[#6c757d] font-semibold">
+              <th className="text-left p-4 text-[#6c757d] font-semibold dark:text-gray-50">
                 Category
               </th>
-              <th className="text-left p-4 text-[#6c757d] font-semibold">
+              <th className="text-left p-4 text-[#6c757d] font-semibold dark:text-gray-50">
                 Brand
               </th>
-              <th className="text-left p-4 text-[#6c757d] font-semibold">
+              <th className="text-left p-4 text-[#6c757d] font-semibold dark:text-gray-50">
                 Price
               </th>
-              <th className="text-left p-4 text-[#6c757d] font-semibold">
+              <th className="text-left p-4 text-[#6c757d] font-semibold dark:text-gray-50">
                 Stock
               </th>
-              <th className="text-left p-4 text-[#6c757d] font-semibold">
+              <th className="text-left p-4 text-[#6c757d] font-semibold dark:text-gray-50">
                 Status
               </th>
-              <th className="text-right p-4 text-[#6c757d] font-semibold">
+              <th className="text-right p-4 text-[#6c757d] font-semibold dark:text-gray-50">
                 Actions
               </th>
             </tr>
@@ -459,12 +459,12 @@ const InventoryManagement = () => {
           <tbody>
             {filteredProducts.map((product) => (
               <tr key={product.productId} className="border-b border-[#ced4da]">
-                <td className="p-4">{product.productId}</td>
-                <td className="p-4">{product.name}</td>
-                <td className="p-4">{product.category}</td>
-                <td className="p-4">{product.subCategory}</td>
-                <td className="p-4">{formatPrice(product.price)}</td>
-                <td className="p-4">
+                <td className="p-4 dark:text-gray-50">{product.productId}</td>
+                <td className="p-4 dark:text-gray-50">{product.name}</td>
+                <td className="p-4 dark:text-gray-50">{product.category}</td>
+                <td className="p-4 dark:text-gray-50">{product.subCategory}</td>
+                <td className="p-4 dark:text-gray-50">{formatPrice(product.price)}</td>
+                <td className="p-4 dark:text-gray-50">
                   {product.stock} {product.unitOfMeasure}
                 </td>
                 <td className="p-4">
@@ -481,7 +481,7 @@ const InventoryManagement = () => {
                         setIsAddStockModalOpen(true);
                       }}
                     >
-                      <Package className="h-4 w-4" />
+                      <Package className="h-4 w-4 dark:text-gray-50" />
                     </Button>
                     <Button
                       variant="outline"
@@ -490,7 +490,7 @@ const InventoryManagement = () => {
                         setIsViewModalOpen(true);
                       }}
                     >
-                      <Eye className="h-4 w-4" />
+                      <Eye className="h-4 w-4 dark:text-gray-50" />
                     </Button>
                     <Button
                       variant="outline"
@@ -499,7 +499,7 @@ const InventoryManagement = () => {
                         setIsEditModalOpen(true);
                       }}
                     >
-                      <Edit2 className="h-4 w-4" />
+                      <Edit2 className="h-4 w-4 dark:text-gray-50" />
                     </Button>
                     <Button
                       variant="danger"

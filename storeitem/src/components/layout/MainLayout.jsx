@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard,
@@ -11,20 +11,16 @@ import {
   UserCircle,
   LogOut,
   ChevronRight,
+  Moon,
+  Sun,
 } from "lucide-react";
 
 const MainLayout = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  // Color palette
-  // eslint-disable-next-line
-  const colors = {
-    primary: "#0077b6",
-    secondary: "#00b4d8",
-    accent: "#caf0f8",
-    background: "#f8f9fa",
-    danger: "#ef233c",
-  };
+  const [darkMode, setDarkMode] = useState(
+    localStorage.getItem("darkMode") === "true"
+  );
 
   // Redirect user to login page if not logged in
   useEffect(() => {
@@ -33,6 +29,17 @@ const MainLayout = () => {
       navigate("/login");
     }
   }, [navigate]);
+
+  // Dark mode effect
+  useEffect(() => {
+    if (darkMode) {
+      document.documentElement.classList.add("dark");
+      localStorage.setItem("darkMode", "true");
+    } else {
+      document.documentElement.classList.remove("dark");
+      localStorage.setItem("darkMode", "false");
+    }
+  }, [darkMode]);
 
   const navigationItems = [
     { path: "/", name: "Dashboard", icon: LayoutDashboard },
@@ -47,17 +54,32 @@ const MainLayout = () => {
     { path: "/reports", name: "Reports", icon: FileBarChart },
     { path: "/expiry-alerts", name: "Expiry Alerts", icon: AlertTriangle },
     { path: "/profile", name: "Profile", icon: UserCircle },
+    // { path: "/membership", name: "Membership", icon: UserCircle },
   ];
 
   const isActive = (path) => location.pathname === path;
 
+  const toggleDarkMode = () => {
+    setDarkMode((prevMode) => {
+      const newMode = !prevMode;
+      if (newMode) {
+        document.documentElement.classList.add("dark");
+        localStorage.setItem("darkMode", "true");
+      } else {
+        document.documentElement.classList.remove("dark");
+        localStorage.setItem("darkMode", "false");
+      }
+      return newMode;
+    });
+  };
+
   return (
-    <div className="flex h-screen bg-gray-50">
+    <div className="flex h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
       {/* Sidebar */}
-      <aside className="fixed left-0 top-0 h-full w-64 bg-white border-r border-gray-200 z-30 shadow-sm">
+      <aside className="fixed left-0 top-0 h-full w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 z-30 shadow-sm">
         <div className="h-full flex flex-col">
           {/* Logo Section */}
-          <div className="h-16 flex items-center justify-center border-b border-gray-200 bg-gradient-to-r from-[#0077b6] to-[#00b4d8]">
+          <div className="h-16 flex items-center justify-center border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-[#0077b6] to-[#00b4d8]">
             <h1 className="text-xl font-bold text-white">Inventory System</h1>
           </div>
 
@@ -74,7 +96,7 @@ const MainLayout = () => {
                     ${
                       active
                         ? "bg-[#0077b6] text-white shadow-sm"
-                        : "text-gray-700 hover:bg-blue-50"
+                        : "text-gray-700 dark:text-gray-300 hover:bg-blue-50 dark:hover:bg-gray-700"
                     }`}
                 >
                   <div
@@ -97,19 +119,39 @@ const MainLayout = () => {
             })}
           </nav>
 
-          {/* Logout Section */}
-          <div className="border-t border-gray-200 p-4 bg-gray-50">
+          {/* Dark Mode Toggle & Logout Section */}
+          <div className="border-t border-gray-200 dark:border-gray-700 p-4 bg-gray-50 dark:bg-gray-800">
+            <div className="flex items-center justify-between mb-2">
+              <button
+                onClick={toggleDarkMode}
+                className="flex items-center px-3 py-2.5 text-sm rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-400 dark:hover:bg-gray-700 hover:text-red-600 dark:hover:text-red-500 transition-colors duration-200 group w-full"
+              >
+               <div className="p-1.5 rounded-md text-gray-900 dark:text-gray-200 hover:bg-gray-300 group-hover:bg-gray-600 group-hover:text-white dark:group-hover:text-white">
+
+                  {darkMode ? (
+                    <Sun className="w-5 h-5" />
+                  ) : (
+                    <Moon className="w-5 h-5" />
+                  )}
+                </div>
+                <span className="ml-3 font-medium text-gray-900 dark:text-gray-300 hover:text-gray-50 dark:hover:text-gray-50">
+                  {darkMode ? "Light Mode" : "Dark Mode"}
+                </span>
+              </button>
+            </div>
             <Link
               to="/login"
-              className="flex items-center px-3 py-2.5 text-sm rounded-lg text-gray-700 hover:bg-red-50 hover:text-red-600 transition-colors duration-200 group"
+              className="flex items-center px-3 py-2.5 text-sm rounded-lg text-gray-700 dark:text-gray-300 hover:bg-red-50 dark:hover:bg-red-900 hover:text-red-600 transition-colors duration-200 group"
               onClick={() => {
-                localStorage.removeItem("authToken"); // Remove auth token from local storage
+                localStorage.removeItem("authToken");
               }}
             >
-              <div className="p-1.5 rounded-md group-hover:bg-red-100">
+              <div className="p-1.5 rounded-md group-hover:bg-red-100 dark:group-hover:bg-red-900">
                 <LogOut className="w-5 h-5" />
               </div>
-              <span className="ml-3 font-medium">Logout</span>
+              <span className="ml-3 font-medium text-gray-700 dark:text-gray-300 hover:text-red-600 dark:hover:text-red-500">
+                Logout
+              </span>
             </Link>
           </div>
         </div>
@@ -118,9 +160,9 @@ const MainLayout = () => {
       {/* Main Content Area */}
       <div className="flex-1 ml-64">
         {/* Fixed Header */}
-        <header className="fixed top-0 right-0 left-64 h-16 bg-white border-b border-gray-200 z-20 shadow-sm">
+        <header className="fixed top-0 right-0 left-64 h-16 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 z-20 shadow-sm">
           <div className="h-full px-6 flex items-center justify-between">
-            <h2 className="text-xl font-semibold text-gray-800 flex items-center">
+            <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-200 flex items-center">
               {navigationItems.find((item) => isActive(item.path))?.icon &&
                 React.createElement(
                   navigationItems.find((item) => isActive(item.path))?.icon,
@@ -132,14 +174,13 @@ const MainLayout = () => {
                 "Dashboard"}
             </h2>
 
-            {/* You can add header actions here */}
             <div className="flex items-center space-x-4">
               <Link
                 to="/profile"
-                className="flex items-center px-3 py-2.5 text-sm rounded-lg text-gray-700 hover:bg-[#0077b6] hover:text-red-600 transition-colors duration-200 group"
+                className="flex items-center px-3 py-2.5 text-sm rounded-lg text-gray-700 dark:text-gray-300 hover:bg-[#0077b6] hover:text-white transition-colors duration-200 group"
               >
-                <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
-                  <UserCircle className="w-6 h-6 text-[#0077b6]" />
+                <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center">
+                  <UserCircle className="w-6 h-6 text-[#0077b6] dark:text-blue-400" />
                 </div>
               </Link>
             </div>
@@ -147,7 +188,7 @@ const MainLayout = () => {
         </header>
 
         {/* Content Area with proper spacing */}
-        <main className="pt-16 min-h-screen bg-[#f8f9fa]">
+        <main className="pt-16 min-h-screen bg-[#f8f9fa] dark:bg-gray-900">
           <div className="p-6">
             <Outlet />
           </div>

@@ -20,6 +20,8 @@ app.use('/api/salesReport',require('./routes/salesReport'));
 app.use('/api/notifications',require('./routes/notifications'))
 app.use('/api/predict',require('./routes/predict'))
 app.use('/api/dashboard',require('./routes/dashboard'))
+app.use('/api/membership',require('./routes/membership'))
+
 // app.use(express.static(path.join(_dirname,"/frontend/build/")));
 
 // app.get('*' , ((_,res) => {

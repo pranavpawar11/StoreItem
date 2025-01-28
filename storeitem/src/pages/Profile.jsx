@@ -91,13 +91,13 @@ const Profile = () => {
   };
 
   const renderModelTrainingSection = () => (
-    <div className="bg-white p-6 rounded-lg shadow-md">
-      <h2 className="text-xl font-bold text-[#343a40] mb-6">ML Model Training</h2>
+    <div className="bg-white p-6 rounded-lg shadow-md dark:text-gray-50 dark:bg-gray-800">
+      <h2 className="text-xl font-bold text-[#343a40] mb-6 dark:text-gray-50">ML Model Training</h2>
       
       <div className="space-y-4">
         {/* Stock Model Training */}
-        <div className="bg-[#f8f9fa] p-4 rounded-md">
-          <h3 className="font-semibold text-[#343a40] mb-3">Stock Prediction Model</h3>
+        <div className="bg-[#f8f9fa] p-4 rounded-md dark:text-gray-50 dark:bg-gray-900">
+          <h3 className="font-semibold text-[#343a40] mb-3 dark:text-gray-50">Stock Prediction Model</h3>
           <button 
             onClick={() => trainStockModel('train-stock-model')}
             disabled={modelTrainingStatus.stockModel === 'training'}
@@ -121,8 +121,8 @@ const Profile = () => {
         </div>
 
         {/* Stock Model V2 Training */}
-        <div className="bg-[#f8f9fa] p-4 rounded-md">
-          <h3 className="font-semibold text-[#343a40] mb-3">Stock Prediction Model V2</h3>
+        <div className="bg-[#f8f9fa] p-4 rounded-md dark:text-gray-50 dark:bg-gray-900">
+          <h3 className="font-semibold text-[#343a40] mb-3 dark:text-gray-50">Stock Prediction Model V2</h3>
           <button 
             onClick={() => trainStockModel('train-stock-model-v2')}
             disabled={modelTrainingStatus.stockModelV2 === 'training'}
@@ -158,10 +158,10 @@ const Profile = () => {
         <div className="flex space-x-4 mb-6">
           <button 
             onClick={() => setActiveSection('profile')}
-            className={`flex items-center py-2 px-4 rounded-md transition-colors ${
+            className={`flex items-center py-2 px-4 rounded-md transition-colors dark:text-gray-50 dark:bg-gray-800 ${
               activeSection === 'profile' 
                 ? 'bg-[#0077b6] text-white' 
-                : 'bg-[#f8f9fa] text-[#6c757d] hover:bg-[#ced4da]'
+                : 'bg-[#f8f9fa] text-[#6c757d] hover:bg-[#ced4da] dark:hover:bg-gray-600'
             }`}
           >
             <User className="mr-2" /> Profile
@@ -169,10 +169,10 @@ const Profile = () => {
           
           <button 
             onClick={() => setActiveSection('mltraining')}
-            className={`flex items-center py-2 px-4 rounded-md transition-colors ${
+            className={`flex items-center py-2 px-4 rounded-md transition-colors dark:text-gray-50 dark:bg-gray-800 ${
               activeSection === 'mltraining' 
                 ? 'bg-[#0077b6] text-white' 
-                : 'bg-[#f8f9fa] text-[#6c757d] hover:bg-[#ced4da]'
+                : 'bg-[#f8f9fa] text-[#6c757d] hover:bg-[#ced4da] dark:hover:bg-gray-600'
             }`}
           >
             <Shield className="mr-2" /> ML Training
@@ -180,27 +180,27 @@ const Profile = () => {
         </div>
 
         {activeSection === 'mltraining' ? renderModelTrainingSection() : (
-          <div className="bg-white p-6 rounded-lg shadow-md">
+          <div className="bg-white p-6 rounded-lg shadow-md dark:text-gray-50 dark:bg-gray-800">
             <div className="flex items-center mb-6">
               <div className="w-16 h-16 bg-[#0077b6] text-white rounded-full flex items-center justify-center mr-4">
                 <User size={32} />
               </div>
               <div>
-                <h2 className="text-xl font-bold text-[#343a40]">{user.name}</h2>
-                <p className="text-[#6c757d]">{user.email}</p>
+                <h2 className="text-xl font-bold text-[#343a40] dark:text-gray-50">{user.name}</h2>
+                <p className="text-[#6c757d] dark:text-gray-300">{user.email}</p>
               </div>
             </div>
             
-            <div className="grid md:grid-cols-2 gap-4">
-              <div className="bg-[#f8f9fa] p-4 rounded-md">
-                <h3 className="font-semibold text-[#343a40] mb-2">Account Details</h3>
-                <p className="text-[#6c757d] mb-2">Role: <span className="font-medium text-[#0077b6]">{user.role}</span></p>
-                <p className="text-[#6c757d] mb-2">Created: {new Date(user.createdAt).toLocaleString()}</p>
-                <p className="text-[#6c757d]">Last Updated: {new Date(user.updatedAt).toLocaleString()}</p>
+            <div className="grid md:grid-cols-2 gap-4 dark:text-gray-50 dark:bg-gray-900">
+              <div className="bg-[#f8f9fa] p-4 rounded-md dark:text-gray-50 dark:bg-gray-900">
+                <h3 className="font-semibold text-[#343a40] mb-2 dark:text-gray-50">Account Details</h3>
+                <p className="text-[#6c757d] mb-2 dark:text-gray-300">Role: <span className="font-medium text-[#0077b6] dark:text-gray-300">{user.role}</span></p>
+                <p className="text-[#6c757d] mb-2 dark:text-gray-300">Created: {new Date(user.createdAt).toLocaleString()}</p>
+                <p className="text-[#6c757d] dark:text-gray-300">Last Updated: {new Date(user.updatedAt).toLocaleString()}</p>
               </div>
 
-              <div className="bg-[#f8f9fa] p-4 rounded-md">
-                <h3 className="font-semibold text-[#343a40] mb-2">Permissions</h3>
+              <div className="bg-[#f8f9fa] p-4 rounded-md dark:text-gray-50 dark:bg-gray-900">
+                <h3 className="font-semibold text-[#343a40] mb-2 dark:text-gray-50">Permissions</h3>
                 <div className="flex flex-wrap">
                   {user.permissions.map(renderPermissionBadge)}
                 </div>

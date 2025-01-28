@@ -6,7 +6,7 @@ import AlertPopup from "../components/UI/AlertPopup";
 const TabButton = ({ active, onClick, children }) => (
   <button
     onClick={onClick}
-    className={`px-6 py-3 font-medium text-sm rounded-t-lg transition-colors duration-200 ${
+    className={`px-6 py-3 dark:text-gray-50 dark:bg-gray-800 font-medium text-sm rounded-t-lg transition-colors duration-200 ${
       active
         ? "bg-white text-[#0077b6] border-t-2 border-[#0077b6] border-b-0"
         : "bg-[#f8f9fa] text-[#6c757d] hover:bg-[#e9ecef] border-b border-[#ced4da]"
@@ -46,12 +46,12 @@ const Button = ({
 const Input = ({ label, error, ...props }) => (
   <div className="space-y-1">
     {label && (
-      <label className="block text-sm font-medium text-[#6c757d]">
+      <label className="block text-sm font-medium text-[#6c757d] dark:text-gray-50 dark:bg-gray-800">
         {label}
       </label>
     )}
     <input
-      className={`w-full px-3 py-2 border ${
+      className={`w-full px-3 py-2 border dark:text-gray-50 dark:bg-gray-800 ${
         error ? "border-[#d00000]" : "border-[#ced4da]"
       } rounded-md focus:outline-none focus:ring-2 focus:ring-[#0077b6] focus:border-transparent`}
       {...props}
@@ -64,12 +64,12 @@ const Input = ({ label, error, ...props }) => (
 const Select = ({ label, options, error, ...props }) => (
   <div className="space-y-1">
     {label && (
-      <label className="block text-sm font-medium text-[#6c757d]">
+      <label className="block text-sm font-medium dark:text-gray-50 dark:bg-gray-800">
         {label}
       </label>
     )}
     <select
-      className={`w-full px-3 py-2 border ${
+      className={`w-full px-3 py-2 border dark:text-gray-50 dark:bg-gray-800 ${
         error ? "border-[#d00000]" : "border-[#ced4da]"
       } rounded-md focus:outline-none focus:ring-2 focus:ring-[#0077b6] focus:border-transparent bg-white`}
       {...props}
@@ -188,7 +188,7 @@ const BillingSection = () => {
   };
 
   return (
-    <Card className="p-6">
+    <Card className="p-6 dark:text-gray-50 dark:bg-gray-800">
       {/* Pop-up Confirmation */}
       {alert && (
           <AlertPopup
@@ -197,11 +197,11 @@ const BillingSection = () => {
             onClose={() => setAlert(null)}
           />
       )}
-      <h2 className="text-xl font-semibold text-[#343a40] mb-6">New Sale</h2>
+      <h2 className="text-xl font-semibold text-[#343a40] mb-6 dark:text-gray-50 dark:bg-gray-800">New Sale</h2>
 
       <div className="space-y-6">
         {/* Buyer Info */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 ">
           <Input
             label="Buyer Name"
             value={buyerInfo.buyerName}
@@ -265,14 +265,14 @@ const BillingSection = () => {
 
         {/* Cart Items */}
         {cartItems.length > 0 && (
-          <div className="mt-6">
-            <h3 className="text-lg font-medium text-[#343a40] mb-3">
+          <div className="mt-6 dark:text-gray-50 dark:bg-gray-800">
+            <h3 className="text-lg font-medium dark:text-gray-50 dark:bg-gray-800 mb-3">
               Cart Items
             </h3>
-            <div className="border border-[#ced4da] rounded-md overflow-hidden">
+            <div className="border border-[#ced4da] rounded-md overflow-hidden dark:text-gray-50 dark:bg-gray-800">
               <div className="max-h-[400px] overflow-y-auto">
-                <table className="w-full">
-                  <thead className="bg-[#f8f9fa] sticky top-0">
+                <table className="w-full ">
+                  <thead className="bg-[#f8f9fa] sticky top-0 dark:text-gray-50 dark:bg-gray-800">
                     <tr>
                       <th className="px-4 py-2 text-left text-[#6c757d]">
                         Product
@@ -321,7 +321,7 @@ const BillingSection = () => {
                 </table>
               </div>
               <div className="border-t border-[#ced4da] bg-[#f8f9fa]">
-                <tr className="flex justify-between px-4 py-2">
+                <tr className="flex justify-between px-4 py-2 dark:text-gray-50 dark:bg-gray-800">
                   <td className="font-medium">Total:</td>
                   <td className="font-medium">
                     {formatPrice(
@@ -437,8 +437,8 @@ const SalesTable = () => {
   };
 
   return (
-    <Card className="p-6 mt-8">
-      <h2 className="text-xl font-semibold text-[#343a40] mb-6">
+    <Card className="p-6 mt-8 dark:text-gray-50 dark:bg-gray-800">
+      <h2 className="text-xl font-semibold text-[#343a40] mb-6 dark:text-gray-50 dark:bg-gray-800">
         Sales History
       </h2>
 
@@ -478,34 +478,34 @@ const SalesTable = () => {
       </div>
 
       {/* Sales Table */}
-      <div className="border border-[#ced4da] rounded-md overflow-hidden">
+      <div className="border border-[#ced4da] rounded-md overflow-hidden" >
         <table className="w-full">
-          <thead className="bg-[#f8f9fa]">
+          <thead className="bg-[#f8f9fa] dark:text-gray-50 dark:bg-gray-800">
             <tr>
-              <th className="px-4 py-2 text-left text-[#6c757d]">ID</th>
-              <th className="px-4 py-2 text-left text-[#6c757d]">Date</th>
-              <th className="px-4 py-2 text-left text-[#6c757d]">Products</th>
-              <th className="px-4 py-2 text-left text-[#6c757d]">Amount</th>
-              <th className="px-4 py-2 text-left text-[#6c757d]">
+              <th className="px-4 py-2 text-left text-[#6c757d] dark:text-gray-50">ID</th>
+              <th className="px-4 py-2 text-left text-[#6c757d] dark:text-gray-50">Date</th>
+              <th className="px-4 py-2 text-left text-[#6c757d] dark:text-gray-50">Products</th>
+              <th className="px-4 py-2 text-left text-[#6c757d] dark:text-gray-50">Amount</th>
+              <th className="px-4 py-2 text-left text-[#6c757d] dark:text-gray-50">
                 Salesperson
               </th>
               <th className="px-4 py-2 text-left text-[#6c757d]">Gender</th>
             </tr>
           </thead>
-          <tbody>
+          <tbody className="text-[#6c757d] dark:text-gray-50">
             {currentSales.length > 0 ? (
               currentSales.map((sale) => (
                 <tr key={sale._id} className="border-t border-[#ced4da]">
-                  <td className="px-4 py-2">{sale._id}</td>
-                  <td className="px-4 py-2">
+                  <td className="px-4 py-2 text-[#6c757d] dark:text-gray-100">{sale._id}</td>
+                  <td className="px-4 py-2 text-[#6c757d] dark:text-gray-100">
                     {new Date(sale.saleDate).toLocaleDateString()}
                   </td>
-                  <td className="px-4 py-2">{`Product ID: ${sale.productId} (Quantity: ${sale.quantitySold})`}</td>
-                  <td className="px-4 py-2">₹{sale.totalSaleAmount}</td>
-                  <td className="px-4 py-2">
+                  <td className="px-4 py-2 text-[#6c757d] dark:text-gray-100">{`Product ID: ${sale.productId} (Quantity: ${sale.quantitySold})`}</td>
+                  <td className="px-4 py-2 text-[#6c757d] dark:text-gray-100">₹{sale.totalSaleAmount}</td>
+                  <td className="px-4 py-2 text-[#6c757d] dark:text-gray-100">
                     {sale.buyerDetails.name || "N/A"}
                   </td>
-                  <td className="px-4 py-2">{sale.buyerDetails.gender}</td>
+                  <td className="px-4 py-2 text-[#6c757d] dark:text-gray-100">{sale.buyerDetails.gender}</td>
                 </tr>
               ))
             ) : (
@@ -524,7 +524,7 @@ const SalesTable = () => {
 
       {/* Pagination */}
       <div className="flex justify-between items-center mt-4">
-        <p className="text-sm text-[#6c757d]">
+        <p className="text-sm text-[#6c757d] text-[#6c757d] dark:text-gray-50">
           Showing {indexOfFirstSale + 1} to{" "}
           {Math.min(indexOfLastSale, filteredSales.length)} of{" "}
           {filteredSales.length} entries
@@ -560,7 +560,7 @@ const SalesManagement = () => {
     <div className="space-y-6">
       
       {/* Tabs Navigation */}
-      <div className="flex gap-2 border-b border-[#ced4da] mb-6">
+      <div className="flex gap-2 border-b border-[#ced4da] mb-6 ">
         <TabButton
           active={activeTab === "billing"}
           onClick={() => setActiveTab("billing")}

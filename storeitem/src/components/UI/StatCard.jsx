@@ -1,8 +1,8 @@
 import React from "react";
 
 const StatCard = ({ title, value, trend, color }) => (
-  <div className="bg-white p-6 rounded-lg shadow-sm">
-    <h3 className="text-sm text-[#6c757d] mb-2">{title}</h3>
+  <div className="bg-white p-6 rounded-lg shadow-sm dark:text-gray-50 dark:bg-gray-800">
+    <h3 className="text-sm text-[#6c757d] mb-2 dark:text-gray-50 dark:bg-gray-800">{title}</h3>
     <p className="text-2xl font-bold" style={{ color }}>
       {value}
     </p>

@@ -159,7 +159,7 @@ const ExpiryNotifications = () => {
             <input
               type="text"
               placeholder="Search by product name or ID..."
-              className="w-full pl-10 pr-4 py-2 border border-[#ced4da] rounded-lg focus:outline-none focus:border-[#0077b6]"
+              className="w-full pl-10 pr-4 py-2 border border-[#ced4da] rounded-lg focus:outline-none focus:border-[#0077b6] dark:text-gray-50 dark:bg-gray-800"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
@@ -168,7 +168,7 @@ const ExpiryNotifications = () => {
           
           <div className="flex gap-4">
             <select
-              className="px-4 py-2 border border-[#ced4da] rounded-lg focus:outline-none focus:border-[#0077b6]"
+              className="px-4 py-2 border border-[#ced4da] rounded-lg focus:outline-none focus:border-[#0077b6] dark:text-gray-50 dark:bg-gray-800"
               value={filters.alertLevel}
               onChange={(e) => setFilters(prev => ({ ...prev, alertLevel: e.target.value }))}
             >
@@ -179,7 +179,7 @@ const ExpiryNotifications = () => {
             </select>
             
             <select
-              className="px-4 py-2 border border-[#ced4da] rounded-lg focus:outline-none focus:border-[#0077b6]"
+              className="px-4 py-2 border border-[#ced4da] rounded-lg focus:outline-none focus:border-[#0077b6] dark:text-gray-50 dark:bg-gray-800"
               value={filters.notificationStatus}
               onChange={(e) => setFilters(prev => ({ ...prev, notificationStatus: e.target.value }))}
             >
@@ -190,7 +190,7 @@ const ExpiryNotifications = () => {
           </div>
           <div className="flex items-center gap-4">
             {lastCheck && (
-              <span className="text-sm text-[#6c757d]">
+              <span className="text-sm text-[#6c757d] dark:text-gray-50">
                 Last checked: {lastCheck.toLocaleTimeString()}
               </span>
             )}
@@ -208,7 +208,7 @@ const ExpiryNotifications = () => {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {loading ? (
-          <div className="col-span-full text-center py-8 text-[#6c757d]">
+          <div className="col-span-full text-center py-8 text-[#6c757d] dark:text-gray-50">
             Loading notifications...
           </div>
         ) : filteredNotifications.length === 0 ? (
@@ -219,7 +219,7 @@ const ExpiryNotifications = () => {
           filteredNotifications.map(notification => (
             <div
               key={notification._id}
-              className="bg-white rounded-lg shadow-md p-4 border border-[#ced4da]"
+              className="bg-white rounded-lg shadow-md p-4 border border-[#ced4da] dark:text-gray-50 dark:bg-gray-800"
             >
               <div className="flex justify-between items-start mb-3">
                 <div className={`px-3 py-1 rounded-full text-sm ${getAlertColor(notification.alertLevel)}`}>
@@ -247,17 +247,17 @@ const ExpiryNotifications = () => {
               </div>
 
               <div className="mb-3">
-                <h3 className="font-semibold text-[#343a40]">
+                <h3 className="font-semibold text-[#343a40] dark:text-gray-50">
                   {notification.product?.name || 'Unknown Product'}
                 </h3>
-                <p className="text-sm text-[#6c757d]">ID: {notification.productId}</p>
+                <p className="text-sm text-[#6c757d] dark:text-gray-300">ID: {notification.productId}</p>
               </div>
 
               <div className="text-sm">
-                <p className="text-[#6c757d]">
+                <p className="text-[#6c757d] dark:text-gray-50">
                   Expiry Date: {new Date(notification.alertGeneratedOn).toLocaleDateString()}
                 </p>
-                <p className="text-[#6c757d]">
+                <p className="text-[#6c757d] dark:text-gray-300">
                   Status: {notification.notificationStatus}
                 </p>
               </div>

@@ -81,7 +81,7 @@ const BrandAnalysis = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#f8f9fa]">
+      <div className="min-h-screen flex items-center justify-center bg-[#f8f9fa] dark:text-gray-50 dark:bg-gray-900">
         <div className="text-[#343a40]">Loading...</div>
       </div>
     );
@@ -91,12 +91,12 @@ const BrandAnalysis = () => {
     <div className="space-y-6">
       {/* Header and Controls */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-[#343a40] mb-6">
+        <h1 className="text-3xl font-bold text-[#343a40] mb-6 dark:text-gray-50 ">
           Brand Analysis {selectedBrand ? "for " + selectedBrand : ""}
         </h1>
 
         {error && (
-          <div className="mb-4 p-4 bg-[#ff595e] text-white rounded-md">
+          <div className="mb-4 p-4 bg-[#ff595e] text-white rounded-md dark:text-gray-50">
             {error}
           </div>
         )}
@@ -114,13 +114,13 @@ const BrandAnalysis = () => {
             type="date"
             value={startDate}
             onChange={(e) => setStartDate(e.target.value)}
-            className="px-4 py-2 rounded-md border border-[#ced4da] focus:outline-none focus:border-[#0077b6]"
+            className="px-4 py-2 rounded-md border border-[#ced4da] focus:outline-none focus:border-[#0077b6] dark:text-gray-50 dark:bg-gray-800"
           />
           <input
             type="date"
             value={endDate}
             onChange={(e) => setEndDate(e.target.value)}
-            className="px-4 py-2 rounded-md border border-[#ced4da] focus:outline-none focus:border-[#0077b6]"
+            className="px-4 py-2 rounded-md border border-[#ced4da] focus:outline-none focus:border-[#0077b6] dark:text-gray-50 dark:bg-gray-800"
           />
         </div>
       </div>
@@ -160,8 +160,8 @@ const BrandAnalysis = () => {
           {/* Charts */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Product Performance */}
-            <div className="bg-white p-6 rounded-lg shadow-sm">
-              <h2 className="text-xl font-semibold text-[#343a40] mb-4">
+            <div className="bg-white p-6 rounded-lg shadow-sm dark:text-gray-50 dark:bg-gray-800">
+              <h2 className="text-xl font-semibold text-[#343a40] mb-4 dark:text-gray-50">
                 Product Performance
               </h2>
               <div className="h-[400px]">
@@ -188,8 +188,8 @@ const BrandAnalysis = () => {
             </div>
 
             {/* Sales Trends */}
-            <div className="bg-white p-6 rounded-lg shadow-sm">
-              <h2 className="text-xl font-semibold text-[#343a40] mb-4">
+            <div className="bg-white p-6 rounded-lg shadow-sm dark:text-gray-50 dark:bg-gray-800">
+              <h2 className="text-xl font-semibold text-[#343a40] mb-4 dark:text-gray-50 ">
                 Sales Trends
               </h2>
               <div className="h-[400px]">
@@ -218,8 +218,8 @@ const BrandAnalysis = () => {
             </div>
 
             {/* Demographics */}
-            <div className="bg-white p-6 rounded-lg shadow-sm">
-              <h2 className="text-xl font-semibold text-[#343a40] mb-4">
+            <div className="bg-white p-6 rounded-lg shadow-sm dark:text-gray-50 dark:bg-gray-800">
+              <h2 className="text-xl font-semibold text-[#343a40] mb-4 dark:text-gray-50 " >
                 Customer Demographics
               </h2>
               <div className="h-[300px]">
@@ -251,8 +251,8 @@ const BrandAnalysis = () => {
             </div>
 
             {/* Top Products Table */}
-            <div className="bg-white p-6 rounded-lg shadow-sm">
-              <h2 className="text-xl font-semibold text-[#343a40] mb-4">
+            <div className="bg-white p-6 rounded-lg shadow-sm dark:text-gray-50 dark:bg-gray-800">
+              <h2 className="text-xl font-semibold text-[#343a40] mb-4 dark:text-gray-50 ">
                 Top Selling Products
               </h2>
               <div className="overflow-x-auto">

@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { 
   Search,
   Plus,
@@ -9,11 +10,13 @@ import {
   Settings,
   Users,
   LifeBuoy,
-  Layers ,
+  Layers,
   ChartBar,
   Moon,
   Sun,
-  X
+  X,
+  LogOut,
+  User
 } from 'lucide-react';
 import {
   Dialog,
@@ -25,32 +28,26 @@ import {
 } from "../components/UI/Membershio-Dialog";
 import { Button } from "../components/UI/Mebership-buttons";
 import { Input } from "../components/UI/Membership-Input";
+import axios from 'axios';
 
-// Dummy data
-const initialPlans = [
-  { id: 1, name: 'Basic', price: 29, subscribers: 45, features: ['5 Users', '10GB Storage', 'Basic Support'] },
-  { id: 2, name: 'Pro', price: 99, subscribers: 78, features: ['25 Users', '50GB Storage', 'Priority Support'] },
-  { id: 3, name: 'Enterprise', price: 299, subscribers: 33, features: ['Unlimited Users', '500GB Storage', '24/7 Support'] }
-];
-
-const initialMembers = [
-  { id: 1, name: 'John Smith', email: 'john@example.com', plan: 'Pro', status: 'Active', renewalDate: '2024-02-15' },
-  { id: 2, name: 'Sarah Johnson', email: 'sarah@example.com', plan: 'Basic', status: 'Active', renewalDate: '2024-02-20' },
-  { id: 3, name: 'Mike Wilson', email: 'mike@example.com', plan: 'Enterprise', status: 'Suspended', renewalDate: '2024-03-01' }
-];
+const BASE_URL = 'http://localhost:5000/api/membership';
 
 const Dashboard = () => {
+  const navigate = useNavigate();
+  
   // State management
   const [darkMode, setDarkMode] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
-  const [plans, setPlans] = useState(initialPlans);
-  const [members, setMembers] = useState(initialMembers);
+  const [plans, setPlans] = useState([]);
+  const [members, setMembers] = useState([]);
   const [stats, setStats] = useState({
-    activePlans: 4,
-    totalMembers: 156,
-    revenue: 12750,
-    upcomingRenewals: 23
+    activePlans: 0,
+    totalMembers: 0,
+    revenue: 0,
+    upcomingRenewals: 0
   });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   // Modal states
   const [showPlanModal, setShowPlanModal] = useState(false);
@@ -60,7 +57,123 @@ const Dashboard = () => {
 
   // Form states
   const [newPlan, setNewPlan] = useState({ name: '', price: '', features: [''] });
-  const [newMember, setNewMember] = useState({ name: '', email: '', plan: 'Basic', status: 'Active', renewalDate: '' });
+  const [newMember, setNewMember] = useState({ 
+    name: '', 
+    email: '', 
+    planId: '', 
+    status: 'Active', 
+    renewalDate: '' 
+  });
+
+  // Auth check
+  useEffect(() => {
+    const token = localStorage.getItem('authToken');
+    if (!token) {
+      navigate('/login');
+    }
+  }, [navigate]);
+
+  // API Configuration
+  const api = axios.create({
+    baseURL: BASE_URL,
+    headers: {
+      'Authorization': `Bearer ${localStorage.getItem('token')}`,
+      'Content-Type': 'application/json'
+    }
+  });
+
+  // Fetch Data Functions
+  const fetchStats = useCallback(async () => {
+    try {
+      const response = await api.get('/stats');
+      setStats(response.data);
+    } catch (err) {
+      setError('Failed to fetch statistics');
+      console.error(err);
+    }
+  }, []);
+
+  const fetchPlans = useCallback(async () => {
+    try {
+      const response = await api.get('/plans');
+      setPlans(response.data);
+    } catch (err) {
+      setError('Failed to fetch plans');
+      console.error(err);
+    }
+  }, []);
+
+  const fetchMembers = useCallback(async () => {
+    try {
+      const response = await api.get('/members', {
+        params: { search: searchTerm }
+      });
+      setMembers(response.data);
+    } catch (err) {
+      setError('Failed to fetch members');
+      console.error(err);
+    }
+  }, [searchTerm]);
+
+  // Initial data load
+  useEffect(() => {
+    const loadData = async () => {
+      setLoading(true);
+      try {
+        await Promise.all([fetchStats(), fetchPlans(), fetchMembers()]);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadData();
+  }, [fetchStats, fetchPlans, fetchMembers]);
+
+  // Handle plan creation
+  const handleCreatePlan = async () => {
+    try {
+      const response = await api.post('/plans', newPlan);
+      setPlans([...plans, response.data]);
+      setShowPlanModal(false);
+      setNewPlan({ name: '', price: '', features: [''] });
+      await fetchStats(); // Refresh stats
+    } catch (err) {
+      setError(err.response?.data?.error || 'Failed to create plan');
+    }
+  };
+
+  // Handle member creation
+  const handleCreateMember = async () => {
+    try {
+      const response = await api.post('/members', newMember);
+      setMembers([...members, response.data]);
+      setShowMemberModal(false);
+      setNewMember({ name: '', email: '', planId: '', status: 'Active', renewalDate: '' });
+      await fetchStats(); // Refresh stats
+    } catch (err) {
+      setError(err.response?.data?.error || 'Failed to create member');
+    }
+  };
+
+  // Handle member deletion
+  const handleDeleteMember = async () => {
+    try {
+      await api.delete(`/members/${selectedItem.memberId}`);
+      setMembers(members.filter(m => m.memberId !== selectedItem.memberId));
+      setShowDeleteModal(false);
+      setSelectedItem(null);
+      await fetchStats(); // Refresh stats
+    } catch (err) {
+      setError(err.response?.data?.error || 'Failed to delete member');
+    }
+  };
+
+  // Handle logout
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    navigate('/login');
+  };
 
   // Dark mode effect
   useEffect(() => {
@@ -71,44 +184,15 @@ const Dashboard = () => {
     }
   }, [darkMode]);
 
-  // Filter members based on search
-  const filteredMembers = members.filter(member => 
-    member.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    member.email.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
 
-  // Handle plan creation
-  const handleCreatePlan = () => {
-    const plan = {
-      id: plans.length + 1,
-      ...newPlan,
-      subscribers: 0,
-      features: newPlan.features.filter(f => f !== '')
-    };
-    setPlans([...plans, plan]);
-    setShowPlanModal(false);
-    setNewPlan({ name: '', price: '', features: [''] });
-  };
-
-  // Handle member creation
-  const handleCreateMember = () => {
-    const member = {
-      id: members.length + 1,
-      ...newMember
-    };
-    setMembers([...members, member]);
-    setShowMemberModal(false);
-    setNewMember({ name: '', email: '', plan: 'Basic', status: 'Active', renewalDate: '' });
-  };
-
-  // Handle member deletion
-  const handleDeleteMember = () => {
-    setMembers(members.filter(m => m.id !== selectedItem.id));
-    setShowDeleteModal(false);
-    setSelectedItem(null);
-  };
-
-  // Plan Modal
+  // Plan Modal Component
   const PlanModal = () => (
     <Dialog open={showPlanModal} onOpenChange={setShowPlanModal}>
       <DialogContent className="sm:max-w-[425px] dark:bg-gray-800">
@@ -126,7 +210,7 @@ const Dashboard = () => {
             />
           </div>
           <div className="grid gap-2">
-            <label className="text-sm font-medium">Price ($/month)</label>
+            <label className="text-sm font-medium">Price (₹/month)</label>
             <Input
               type="number"
               value={newPlan.price}
@@ -175,7 +259,7 @@ const Dashboard = () => {
     </Dialog>
   );
 
-  // Member Modal
+  // Member Modal Component
   const MemberModal = () => (
     <Dialog open={showMemberModal} onOpenChange={setShowMemberModal}>
       <DialogContent className="sm:max-w-[425px] dark:bg-gray-800">
@@ -204,12 +288,13 @@ const Dashboard = () => {
           <div className="grid gap-2">
             <label className="text-sm font-medium">Plan</label>
             <select
-              value={newMember.plan}
-              onChange={(e) => setNewMember({...newMember, plan: e.target.value})}
+              value={newMember.planId}
+              onChange={(e) => setNewMember({...newMember, planId: e.target.value})}
               className="w-full p-2 border rounded-md dark:bg-gray-700 dark:border-gray-600"
             >
+              <option value="">Select a plan</option>
               {plans.map(plan => (
-                <option key={plan.id} value={plan.name}>{plan.name}</option>
+                <option key={plan.planId} value={plan.planId}>{plan.name}</option>
               ))}
             </select>
           </div>
@@ -230,7 +315,7 @@ const Dashboard = () => {
     </Dialog>
   );
 
-  // Delete Confirmation Modal
+  // Delete Confirmation Modal Component
   const DeleteModal = () => (
     <Dialog open={showDeleteModal} onOpenChange={setShowDeleteModal}>
       <DialogContent className="sm:max-w-[425px] dark:bg-gray-800">
@@ -248,6 +333,7 @@ const Dashboard = () => {
     </Dialog>
   );
 
+  // Main JSX
   return (
     <div className={`min-h-screen ${darkMode ? 'dark' : ''}`}>
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
@@ -258,13 +344,13 @@ const Dashboard = () => {
               <div className="flex items-center">
                 <span className="text-2xl font-bold text-blue-600 dark:text-blue-400">ServiceHub</span>
               </div>
-              <nav className="flex space-x-8">
+              <nav className="flex items-center space-x-8">
                 <a href="#" className="flex items-center text-gray-900 dark:text-white hover:text-blue-600">
                   <ChartBar className="w-5 h-5 mr-1" />
                   Dashboard
                 </a>
                 <a href="#" className="flex items-center text-gray-500 dark:text-gray-400 hover:text-blue-600">
-                  <Layers  className="w-5 h-5 mr-1" />
+                  <Layers className="w-5 h-5 mr-1" />
                   Plans
                 </a>
                 <a href="#" className="flex items-center text-gray-500 dark:text-gray-400 hover:text-blue-600">
@@ -285,6 +371,16 @@ const Dashboard = () => {
                 >
                   {darkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
                 </button>
+                <div className="relative">
+                  <Button
+                    onClick={handleLogout}
+                    variant="ghost"
+                    className="flex items-center text-gray-500 dark:text-gray-400 hover:text-blue-600"
+                  >
+                    <LogOut className="w-5 h-5 mr-1" />
+                    Logout
+                  </Button>
+                </div>
               </nav>
             </div>
           </div>
@@ -292,6 +388,18 @@ const Dashboard = () => {
 
         {/* Main Content */}
         <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+          {error && (
+            <div className="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
+              {error}
+              <button 
+                onClick={() => setError(null)}
+                className="float-right"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          )}
+
           {/* Stats Overview */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
             <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
@@ -304,7 +412,7 @@ const Dashboard = () => {
             </div>
             <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
               <h3 className="text-gray-500 dark:text-gray-400 text-sm font-medium">Revenue</h3>
-              <p className="mt-2 text-3xl font-semibold text-gray-900 dark:text-white">${stats.revenue}</p>
+              <p className="mt-2 text-3xl font-semibold text-gray-900 dark:text-white">₹ {stats.revenue}</p>
             </div>
             <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
               <h3 className="text-gray-500 dark:text-gray-400 text-sm font-medium">Upcoming Renewals</h3>
@@ -324,8 +432,6 @@ const Dashboard = () => {
             </Button>
           </div>
 
-          {/* Previous code remains the same until Plans Section */}
-
           {/* Plans Section */}
           <div className="bg-white dark:bg-gray-800 shadow rounded-lg mb-8">
             <div className="px-4 py-5 border-b border-gray-200 dark:border-gray-700 sm:px-6">
@@ -334,9 +440,9 @@ const Dashboard = () => {
             <div className="p-6">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {plans.map(plan => (
-                  <div key={plan.id} className="border dark:border-gray-700 rounded-lg p-6 dark:bg-gray-700">
+                  <div key={plan.planId} className="border dark:border-gray-700 rounded-lg p-6 dark:bg-gray-700">
                     <h3 className="text-lg font-medium text-gray-900 dark:text-white">{plan.name}</h3>
-                    <p className="mt-2 text-2xl font-semibold text-blue-600 dark:text-blue-400">${plan.price}/mo</p>
+                    <p className="mt-2 text-2xl font-semibold text-blue-600 dark:text-blue-400">₹ {plan.price}/mo</p>
                     <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{plan.subscribers} subscribers</p>
                     <ul className="mt-4 space-y-2">
                       {plan.features.map((feature, index) => (
@@ -382,11 +488,13 @@ const Dashboard = () => {
                   </tr>
                 </thead>
                 <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                  {filteredMembers.map(member => (
-                    <tr key={member.id}>
+                  {members.map(member => (
+                    <tr key={member.memberId}>
                       <td className="px-6 py-4 whitespace-nowrap text-gray-900 dark:text-white">{member.name}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-gray-900 dark:text-white">{member.email}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-gray-900 dark:text-white">{member.plan}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-gray-900 dark:text-white">
+                        {plans.find(p => p.planId === member.planId)?.name || 'Unknown Plan'}
+                      </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
                           member.status === 'Active' 
@@ -396,7 +504,9 @@ const Dashboard = () => {
                           {member.status}
                         </span>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-gray-900 dark:text-white">{member.renewalDate}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-gray-900 dark:text-white">
+                        {new Date(member.renewalDate).toLocaleDateString()}
+                      </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex space-x-3">
                           <button className="text-blue-600 dark:text-blue-400 hover:text-blue-900 dark:hover:text-blue-300">
@@ -433,4 +543,4 @@ const Dashboard = () => {
   );
 };
 
-export default Dashboard; 
+export default Dashboard;
