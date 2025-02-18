@@ -79,6 +79,18 @@ const BrandAnalysis = () => {
     }
   };
 
+  // Calculate total sales
+  const totalSales = data?.customerDemographicsBySubcategory.reduce(
+    (acc, entry) => acc + entry.totalSales,
+    0
+  );
+
+  // Custom label to show percentage
+  const renderCustomLabel = ({ name, value }) => {
+    const percentage = ((value / totalSales) * 100).toFixed(2);
+    return `${value }₹ : ${percentage}%`;
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#f8f9fa] dark:text-gray-50 dark:bg-gray-900">
@@ -219,22 +231,22 @@ const BrandAnalysis = () => {
 
             {/* Demographics */}
             <div className="bg-white p-6 rounded-lg shadow-sm dark:text-gray-50 dark:bg-gray-800">
-              <h2 className="text-xl font-semibold text-[#343a40] mb-4 dark:text-gray-50 " >
+              <h2 className="text-xl font-semibold text-[#343a40] mb-4 dark:text-gray-50 ">
                 Customer Demographics
               </h2>
               <div className="h-[300px]">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                     <Pie
-                      data={data.customerDemographicsBySubcategory}
+                      data={data?.customerDemographicsBySubcategory}
                       dataKey="totalSales"
                       nameKey="gender"
                       cx="50%"
                       cy="50%"
                       outerRadius={100}
-                      label
+                      label={renderCustomLabel} // Add custom label
                     >
-                      {data.customerDemographicsBySubcategory.map(
+                      {data?.customerDemographicsBySubcategory.map(
                         (entry, index) => (
                           <Cell
                             key={`cell-${index}`}
@@ -243,7 +255,7 @@ const BrandAnalysis = () => {
                         )
                       )}
                     </Pie>
-                    <Tooltip />
+                    <Tooltip formatter={(value) => `${value} sales`} />
                     <Legend />
                   </PieChart>
                 </ResponsiveContainer>
