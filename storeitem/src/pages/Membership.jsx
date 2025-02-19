@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import {
   Users,
   Package,
-  DollarSign,
+  IndianRupee,
   Calendar,
   Search,
   Plus,
@@ -175,7 +175,7 @@ const MembershipDashboard = () => {
       {/* Sidebar */}
       <div className="w-64 bg-white shadow-lg fixed h-full">
         <div className="h-16 flex items-center px-6 border-b">
-          <h1 className="text-xl font-bold text-gray-800">Store Admin</h1>
+          <h1 className="text-xl font-bold text-gray-800">StoreItem Admin</h1>
         </div>
         <nav className="mt-6">
           <div className="px-4 space-y-2">
@@ -212,10 +212,10 @@ const MembershipDashboard = () => {
               <Users className="w-5 h-5 mr-3" />
               Members
             </button>
-            <button className="w-full flex items-center px-4 py-3 rounded-lg text-sm text-gray-600 hover:bg-gray-100">
+            {/* <button className="w-full flex items-center px-4 py-3 rounded-lg text-sm text-gray-600 hover:bg-gray-100">
               <Settings className="w-5 h-5 mr-3" />
               Settings
-            </button>
+            </button> */}
           </div>
         </nav>
       </div>
@@ -310,7 +310,7 @@ const MembershipDashboard = () => {
                       </p>
                     </div>
                     <div className="bg-green-50 p-3 rounded-lg">
-                      <DollarSign className="w-6 h-6 text-green-600" />
+                      <IndianRupee className="w-6 h-6 text-green-600" />
                     </div>
                   </div>
                   <div className="mt-4">
